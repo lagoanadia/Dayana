@@ -300,7 +300,7 @@ function viewHub(){
     ${window.cloudCard ? cloudCard() : ''}
     <button class="mission" data-go="#/avatar"><div class="ic" style="background:var(--pink)">${P.avatar}</div>
       <div><div class="t">Cambiar personaje</div><div class="s">Avatar y nombre</div></div><div class="st">▶</div></button>
-    <footer>Hecho con cariño para ${esc(P.name)} 💛</footer>`);
+    <footer>Hecho con cariño 💛</footer>`);
   if(window.cloudBind) cloudBind();
 }
 
