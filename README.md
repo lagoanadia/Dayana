@@ -1,6 +1,8 @@
-# Taller de Tecnología
+# Estudiar Jugando
 
-Web de repaso para el examen de Tecnología. Es un único archivo `index.html`, sin instalar nada.
+Web de repaso con gamificación (XP, niveles, estrellas, logros, minijuegos). Sin instalar nada: HTML + CSS + JS.
 
-- **Vercel:** importa el repo, Framework "Other", sin comando de build y despliega.
-- **Cambiar el contenido:** la teoría y el test fácil están en `SECTIONS` y las preguntas de escribir (test difícil y examen final) en `FINAL`, dentro de `index.html`.
+- **Vercel:** importa el repo, Framework "Other", sin comando de build.
+- **Asignaturas:** cada una es un archivo en `subjects/` (`tecnologia.js`, `bioloxia.js`). Para añadir otra, copia uno, cambia el contenido y añade su `<script>` en `index.html`.
+- Cada tema tiene: `body` (teoría; lo que va en `<b>` se puede tapar), `quiz` (test fácil), `hard` (test difícil y jefe final, de escribir) y `games` (3 minijuegos: `order`, `match`, `classify`, `tf`, `hangman`, `pick`, `memory`).
+- La Zona Arcade (5 juegos mezclados) se genera sola con los datos de los temas.
