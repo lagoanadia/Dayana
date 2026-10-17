@@ -682,10 +682,10 @@ function runGame(s, g, ctx){
     <div class="ghud" id="ghud"></div>
     <div id="gbody"></div>`);
   let errors = 0; const myRID = RID;
-  const hud = extra => $('#ghud') && ($('#ghud').innerHTML = `<span class="chip">❌ Fallos: ${errors}</span>${extra||''}`);
+  const hud = (extra, noErr) => $('#ghud') && ($('#ghud').innerHTML = (noErr ? '' : `<span class="chip">❌ Fallos: ${errors}</span>`) + (extra||''));
   const miss = el => { errors++; sfx('bad'); if(el){ el.classList.remove('bad','shake'); void el.offsetWidth; el.classList.add(el.classList.contains('tile') || el.classList.contains('bubble') ? 'bad' : 'shake'); } };
   const hit = () => sfx('ok');
-  const finish = (customStars) => {
+  const finish = (customStars, customMsg) => {
     const stars = customStars != null ? customStars : errors === 0 ? 3 : errors <= 2 ? 2 : 1;
     const key = ctx.arcade != null ? 'a' + ctx.arcade : s.sections[ctx.i].id + ':' + ctx.k;
     const p = prog(s.id), bag = ctx.arcade != null ? p.arcade : p.games;
@@ -698,7 +698,7 @@ function runGame(s, g, ctx){
     const st = subjStars(s); if(st.got === st.max) unlock('world');
     if(stars === 3){ confetti(70); sfx('win'); } else sfx('level');
     setTimeout(() => RID === myRID && resultScreen({title: stars === 3 ? '¡PERFECTO!' : stars === 2 ? '¡Muy bien!' : '¡Conseguido!', mood: stars === 3 ? 'happy' : 'ok',
-      big: null, starsHtml: starsTxt(stars,3), xp, msg: errors === 0 ? '¡Sin ningún fallo! 🏆' : 'Fallos: ' + errors + '. ¿Lo intentas sin fallar?',
+      big: null, starsHtml: starsTxt(stars,3), xp, msg: customMsg || (errors === 0 ? '¡Sin ningún fallo! 🏆' : 'Fallos: ' + errors + '. ¿Lo intentas sin fallar?'),
       retry: () => route(), back}), 450);
   };
   g = vary(s, g, ctx);
@@ -824,23 +824,44 @@ function gPick(g, X){
 function gMemory(g, X){
   const pairs = shuffle(g.pairs).slice(0, 6);
   const cards = shuffle(pairs.flatMap((p,k) => [{t:p[0], k}, {t:p[1], k}]));
-  let open = [], got = 0, lock = false;
-  X.body.innerHTML = `<p class="prompt">${g.prompt || 'Encuentra las parejas'}</p><div class="mem-grid" id="mem"></div>`;
-  X.hud(`<span class="chip">🃏 0 / ${pairs.length}</span>`);
-  cards.forEach(c => {
-    const b = document.createElement('button'); b.className = 'mcard';
+  // Intentos: cada vez que destapa 2 cartas. Lo perfecto es 1 intento por pareja.
+  let open = [], got = 0, tries = 0, lock = true;
+  const N = pairs.length;
+  const hud = () => X.hud(`<span class="chip">🃏 ${got} / ${N}</span><span class="chip">🔁 Intentos: ${tries}</span>`, true);
+  X.body.innerHTML = `<p class="prompt" id="memMsg">👀 ¡Memoriza las cartas!</p><div class="mem-grid" id="mem"></div>`;
+  hud();
+  const btns = cards.map(c => {
+    const b = document.createElement('button'); b.className = 'mcard up';
     b.innerHTML = `<div class="in"><div class="f">❓</div><div class="b"></div></div>`; b.querySelector('.b').textContent = c.t;
     b.onclick = () => {
       if(lock || b.classList.contains('up')) return;
       b.classList.add('up'); sfx('tap'); open.push([b,c]);
       if(open.length === 2){
-        const [[b1,c1],[b2,c2]] = open; open = [];
-        if(c1.k === c2.k){ b1.classList.add('got'); b2.classList.add('got'); got++; X.hit(); X.hud(`<span class="chip">🃏 ${got} / ${pairs.length}</span>`); if(got === pairs.length) setTimeout(() => X.finish(X.errors <= 3 ? 3 : X.errors <= 7 ? 2 : 1), 500); }
-        else { lock = true; X.miss(); X.hud(`<span class="chip">🃏 ${got} / ${pairs.length}</span>`); setTimeout(() => { b1.classList.remove('up'); b2.classList.remove('up'); lock = false; }, 900); }
+        const [[b1,c1],[b2,c2]] = open; open = []; tries++;
+        if(c1.k === c2.k){
+          b1.classList.add('got'); b2.classList.add('got'); got++; X.hit(); hud();
+          if(got === N){
+            const stars = tries <= N + 3 ? 3 : tries <= N * 2 + 2 ? 2 : 1;
+            setTimeout(() => X.finish(stars, '¡Lo hiciste en ' + tries + ' intentos! ' + (stars === 3 ? '🧠 ¡Memoria de elefante!' : 'Con ' + (N + 3) + ' o menos consigues 3 estrellas')), 500);
+          }
+        } else { lock = true; sfx('tap'); hud(); setTimeout(() => { b1.classList.remove('up'); b2.classList.remove('up'); lock = false; }, 900); }
       }
     };
     $('#mem').appendChild(b);
+    return b;
   });
+  // Ronda de memorizar: 3 segundos con todas las cartas a la vista
+  let t = 3;
+  const tick = setInterval(() => {
+    if(!X.alive()) return clearInterval(tick);
+    t--;
+    if(t > 0){ $('#memMsg').textContent = '👀 ¡Memoriza las cartas! ' + t; return; }
+    clearInterval(tick);
+    btns.forEach(b => b.classList.remove('up'));
+    $('#memMsg').textContent = g.prompt || 'Encuentra las parejas';
+    lock = false;
+  }, 1000);
+  $('#memMsg').textContent = '👀 ¡Memoriza las cartas! 3';
 }
 
 /* Cada partida coge otro trozo del banco: mezcla los datos del juego con el banco
