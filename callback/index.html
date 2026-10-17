@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Conectando…</title>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#ffd23f;font-family:system-ui,sans-serif;font-weight:700;color:#2b1d0e}</style></head>
+<body>
+<p>☁️ Conectando con Google…</p>
+<script>
+/* Google vuelve aquí después del login (URI de redirección: /callback).
+   Guardamos el permiso y volvemos a la app. */
+(function(){
+  var h = new URLSearchParams(location.hash.slice(1) || location.search.slice(1));
+  var out = {};
+  try{
+    var st = sessionStorage.getItem('oauth_state');
+    if(h.get('error')) out.error = h.get('error');
+    else if(!h.get('access_token')) out.error = 'sin_token';
+    else if(st && h.get('state') !== st) out.error = 'state';
+    else out = {token: h.get('access_token'), exp: Date.now() + (parseInt(h.get('expires_in') || '3600', 10) - 60) * 1000};
+    localStorage.setItem('cloud_token', JSON.stringify(out));
+  }catch(e){}
+  location.replace('/#/');
+})();
+</script>
+</body>
+</html>
