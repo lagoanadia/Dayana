@@ -155,10 +155,8 @@ h1,h2,h3{font-family:'Lilita One','Nunito',sans-serif; font-weight:400; margin:0
 .card.example h3 .chip{background:var(--blue)}
 .card.pop{animation:popIn .5s cubic-bezier(.2,1.5,.4,1)}
 @keyframes popIn{from{opacity:0; transform:translateY(24px) scale(.94)}}
-.card b.key{background:var(--yellow); color:transparent; border-radius:8px; padding:0 6px; cursor:pointer; position:relative; user-select:none; transition:color .2s, background .2s; box-shadow:0 2px 0 var(--yellow-d)}
-.card b.key::after{content:"?"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--ink); font-weight:900}
+.card b.key{background:var(--yellow) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='16'%3E%3Ctext x='6' y='13' font-size='14' font-family='Arial' font-weight='900' text-anchor='middle' fill='%232b1d0e'%3E%3F%3C/text%3E%3C/svg%3E") no-repeat center; color:transparent; border-radius:8px; padding:0 6px; cursor:pointer; user-select:none; -webkit-user-select:none; transition:color .2s, background-color .2s; box-shadow:0 2px 0 var(--yellow-d); -webkit-box-decoration-break:clone; box-decoration-break:clone}
 .card b.key.shown{color:var(--ink); background:var(--gold-soft); box-shadow:none}
-.card b.key.shown::after{content:none}
 .phase-flow{display:flex; flex-direction:column; gap:10px; margin-top:10px}
 .phase-row{display:grid; grid-template-columns:44px 1fr; gap:12px; align-items:start; background:var(--paper); border-radius:16px; padding:12px}
 .phase-row .n{width:40px; height:40px; border-radius:12px; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Lilita One',sans-serif; font-size:20px}
