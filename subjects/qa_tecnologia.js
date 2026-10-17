@@ -1,0 +1,98 @@
+/* Banco de combinaciones pregunta → respuesta de Tecnología.
+   Formato: [pregunta, respuesta corta, (opcional) palabras clave válidas al escribir]
+   Se usan para variar tests y minijuegos en cada partida. */
+addQA("tecnologia", {
+  intro: [
+    ["Tipo de problema con una única solución", "Problema matemático", ["matematic"]],
+    ["Tipo de problema con varias soluciones que se resuelve construyendo", "Problema técnico", ["tecnic"]],
+    ["¿Qué basta para resolver un problema de mates?", "Papel y bolígrafo", ["papel","boligrafo","lapiz"]],
+    ["¿En qué asignatura se resuelven problemas técnicos?", "Tecnología", ["tecnolog"]],
+    ["¿Qué hay que saber manejar para resolver un problema técnico?", "Herramientas", ["herramienta"]],
+    ["¿Qué hay que conocer que esté disponible?", "Los materiales", ["material"]],
+    ["¿Qué necesitas saber sobre el tema?", "Conocimientos", ["conocimiento"]],
+    ["¿Cómo se resuelve un problema técnico?", "Construyendo algo", ["constru"]],
+    ["¿Cuántas soluciones puede tener un problema técnico?", "Varias", ["varias","muchas","mas de una"]],
+    ["¿Cuántas cosas a la vez hacen falta para un problema tecnológico?", "Tres", ["tres","3"]],
+    ["Diseñar una estantería es un problema...", "Técnico", ["tecnic"]],
+    ["Calcular 25 × 4 es un problema...", "Matemático", ["matematic"]]
+  ],
+  proceso: [
+    ["Método ordenado para idear, diseñar y construir", "Proceso tecnológico", ["proceso tecnolog","metodo de proyecto"]],
+    ["Otro nombre del proceso tecnológico", "Método de proyectos", ["metodo de proyecto","proyecto"]],
+    ["Fase 1 del proceso tecnológico", "Planteamiento del problema", ["planteamiento","plantear"]],
+    ["Fase 2 del proceso tecnológico", "Diseño", ["diseno"]],
+    ["Fase 3 del proceso tecnológico", "Planificación", ["planifica"]],
+    ["Fase 4 del proceso tecnológico", "Construcción", ["constru"]],
+    ["Fase 5 del proceso tecnológico", "Evaluación", ["evalua"]],
+    ["Fase 6 del proceso tecnológico", "Presentación y comercialización", ["presenta","comercializ","difusi"]],
+    ["Fase en la que se fabrican y montan las piezas", "Construcción", ["constru"]],
+    ["Fase en la que se proponen soluciones y se elige la mejor", "Diseño", ["diseno"]],
+    ["Fase en la que se hace el presupuesto", "Planificación", ["planifica"]],
+    ["Fase en la que se comprueba si funciona", "Evaluación", ["evalua"]],
+    ["Diagrama de barras que organiza el tiempo de las tareas", "Diagrama de Gantt", ["gantt","gant"]],
+    ["Documento que recoge todo el proceso", "Memoria técnica", ["memoria"]],
+    ["Documentos 1 a 7 de la memoria técnica", "Anteproyecto", ["anteproyecto"]],
+    ["Venta por internet que se usa para comercializar", "E-commerce", ["commerce","comercio electronico"]],
+    ["Normas que hay que cumplir al construir en el taller", "Normas de seguridad", ["seguridad"]],
+    ["Hoja de la fase de planificación", "Hoja de procesos", ["hoja de procesos","procesos"]]
+  ],
+  sost: [
+    ["Efecto que calienta el planeta por los gases", "Efecto invernadero", ["invernadero"]],
+    ["Capa de la atmósfera que se destruye", "Capa de ozono", ["ozono"]],
+    ["Destrucción de los bosques", "Deforestación", ["deforesta"]],
+    ["Energía que aprovecha el sol", "Energía solar", ["solar"]],
+    ["Energía que aprovecha el viento", "Energía eólica", ["eolica"]],
+    ["Energía que aprovecha restos orgánicos", "Biomasa", ["biomasa"]],
+    ["Transporte respetuoso de dos ruedas", "Bicicleta eléctrica", ["bici"]],
+    ["Proceso para aprovechar los residuos", "Reciclaje", ["recicla"]],
+    ["Lo que se contamina en ríos y mares", "El agua", ["agua"]],
+    ["Lo que se agota al usar demasiados recursos", "Recursos naturales", ["recurso"]],
+    ["Sistemas que vigilan cuánta energía gastamos", "Control del consumo energético", ["consumo","control"]],
+    ["Lo que a veces la sociedad desconoce de la tecnología", "Sus consecuencias", ["consecuencia"]],
+    ["¿La tecnología solo perjudica al medio ambiente?", "No, también ayuda", ["no"]]
+  ],
+  obso: [
+    ["Obsolescencia por peores prestaciones que los modelos nuevos", "Funcional", ["funcional"]],
+    ["Obsolescencia por no cumplir las nuevas necesidades del mercado", "Tecnológica", ["tecnolog"]],
+    ["Obsolescencia diseñada para durar un tiempo concreto", "Programada", ["programada"]],
+    ["Producto de usar y tirar", "Desechable", ["desechable"]],
+    ["Producto que dura mucho tiempo", "Duradero", ["duradero"]],
+    ["Ejemplo típico de obsolescencia funcional", "El teléfono móvil", ["movil","telefono"]],
+    ["¿Qué fomenta la obsolescencia programada?", "Productos desechables", ["desechable","usar y tirar"]],
+    ["¿A qué obliga la obsolescencia programada?", "A comprar modelos nuevos", ["comprar","nuevo"]],
+    ["¿Se podrían fabricar productos más duraderos?", "Sí, técnicamente sí", ["si"]],
+    ["Producto que queda anticuado aunque todavía funciona", "Obsolescencia tecnológica", ["tecnolog"]],
+    ["Lo que queda mermado en la obsolescencia funcional", "Las prestaciones", ["prestaci"]],
+    ["Momento en que queda inservible un producto programado", "Al acabar su período", ["periodo","plazo","acabar","tiempo"]]
+  ],
+  analisis: [
+    ["Análisis de la forma, medidas y piezas", "Anatómico", ["anatomic"]],
+    ["Análisis de cómo funciona y sus fallos", "Funcional", ["funcional"]],
+    ["Análisis de los materiales y la fabricación", "Técnico", ["tecnic"]],
+    ["Análisis del precio y la historia", "Socio-económico", ["socio","economic"]],
+    ["Dibujo de las piezas separadas", "Despiece", ["despiece"]],
+    ["Material del cuerpo del sacapuntas", "Aluminio", ["aluminio"]],
+    ["Material de la cuchilla del sacapuntas", "Acero", ["acero"]],
+    ["Número de piezas del sacapuntas", "Tres", ["tres","3"]],
+    ["Forma del sacapuntas", "De cuña", ["cuna"]],
+    ["Lo que se usaba antes del sacapuntas", "Una navaja", ["navaja"]],
+    ["Precio aproximado del sacapuntas", "1,50 €", ["1,5","1.5","1,50"]],
+    ["Piezas del sacapuntas", "Cuerpo, tornillo y cuchilla", ["cuerpo","tornillo","cuchilla"]],
+    ["Cómo se fabrica el cuerpo del sacapuntas", "Fundiendo el metal en un molde", ["molde","fundi"]],
+    ["Frase que se dice de los inventos", "Todo está inventado", ["inventado"]],
+    ["Lo que hacen los fabricantes con los modelos del mercado", "Analizarlos para mejorarlos", ["analiz","mejora"]]
+  ],
+  proyecto: [
+    ["Objeto a diseñar en el proyecto de ejemplo", "Soporte para mandos", ["soporte"]],
+    ["Problema del proyecto de ejemplo", "Mandos desordenados", ["desorden","ordenar"]],
+    ["Técnica de juntar ideas en grupo", "Tormenta de ideas", ["tormenta","brainstorm","lluvia"]],
+    ["Nombre en inglés de la tormenta de ideas", "Brainstorming", ["brainstorm"]],
+    ["Lugares de internet para buscar ideas", "Webs, foros y vídeos", ["web","foro","video"]],
+    ["Lo que permite evaluar todas las propuestas del equipo", "Puesta en común", ["puesta en comun","comun"]],
+    ["Cómo se debe plantear la necesidad", "De forma clara", ["clara"]],
+    ["Fuente: productos que resuelven algo...", "Parecido o similar", ["parecid","similar"]],
+    ["Criterios para elegir la solución", "Construcción, coste y sostenibilidad", ["coste","sostenib","constru"]],
+    ["Aparato del que son los mandos", "Videoconsola", ["consola"]],
+    ["Lo que hay que plantear junto con la necesidad", "Las condiciones", ["condicion"]]
+  ]
+});

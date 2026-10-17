@@ -35,7 +35,7 @@ registerSubject({
     games:[
       {type:"pick", title:"¿Qué necesito?", prompt:"Toca solo lo que hace falta para resolver un problema tecnológico", items:[["Conocimientos",true],["Herramientas",true],["Materiales",true],["Suerte",false],["Un mago",false],["Copiar",false],["Dormir",false],["Papel de regalo",false]]},
       {type:"classify", title:"¿Mates o Tecno?", bins:["🧮 Problema matemático","🔧 Problema técnico"], items:[["Tiene una única solución",0],["Tiene varias soluciones",1],["Basta con papel y bolígrafo",0],["Se resuelve construyendo algo",1],["Calcular 25 × 4",0],["Diseñar una estantería",1],["Hacer un puente con palillos",1],["Resolver una ecuación",0]]},
-      {type:"hangman", title:"Palabra oculta", words:[["Tecnico","Tipo de problema con varias soluciones"],["Herramientas","Hay que saber manejarlas"],["Materiales","Hay que conocer los disponibles"],["Conocimientos","Lo que sabes sobre el tema"]]}
+      {type:"hangman", title:"Palabra oculta", words:[["Tecnico","Problema con varias soluciones posibles que se resuelve construyendo algo"],["Matematico","Problema con una única solución que se resuelve con papel y bolígrafo"],["Tecnologia","Asignatura en la que se resuelven problemas técnicos construyendo objetos"]]}
     ]
   },
   {

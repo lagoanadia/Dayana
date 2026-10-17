@@ -47,11 +47,11 @@ button{font-family:inherit}
 h1,h2,h3{font-family:'Lilita One','Nunito',sans-serif; font-weight:400; margin:0; line-height:1.1; text-wrap:balance}
 
 /* Marco tipo móvil */
-.app{overflow-x:clip; max-width:560px; margin:0 auto; min-height:100vh; background:var(--paper); position:relative; padding:0 16px 90px; box-shadow:0 0 0 6px rgba(255,255,255,.35)}
+.app{overflow-x:clip; padding-bottom:calc(90px + env(safe-area-inset-bottom,0px)); max-width:560px; margin:0 auto; min-height:100vh; background:var(--paper); position:relative; padding:0 16px 90px; box-shadow:0 0 0 6px rgba(255,255,255,.35)}
 @media(min-width:600px){ .app{margin:20px auto; min-height:calc(100vh - 40px); border-radius:36px; padding-bottom:60px} }
 
 /* HUD superior */
-.hud{position:sticky; top:0; z-index:40; background:var(--paper); display:flex; align-items:center; gap:8px; padding:12px 0 10px; border-bottom:2px dashed var(--line)}
+.hud{position:sticky; top:0; z-index:40; background:var(--paper); display:flex; align-items:center; gap:8px; padding:calc(12px + env(safe-area-inset-top,0px)) 0 10px; border-bottom:2px dashed var(--line)}
 @media(min-width:600px){ .hud{border-radius:36px 36px 0 0} }
 .hud .av{width:42px; height:42px; border-radius:14px; background:var(--yellow); display:flex; align-items:center; justify-content:center; font-size:24px; flex:none; border:none; cursor:pointer; box-shadow:0 3px 0 var(--yellow-d)}
 .hud .lv{flex:1; min-width:0; background:none; border:none; padding:0; text-align:left; cursor:pointer; color:var(--ink)}

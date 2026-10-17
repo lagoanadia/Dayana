@@ -4,6 +4,11 @@
    ========================================================= */
 const SUBJECTS = [];
 function registerSubject(def){ SUBJECTS.push(def); }
+/* Bancos pregunta → respuesta: addQA("tecnologia", {intro:[[pregunta, respuesta, claves?], ...]}) */
+function addQA(sid, map){
+  const s = SUBJECTS.find(x => x.id === sid); if(!s) return;
+  s.sections.forEach(sec => { if(map[sec.id]) sec.qa = (sec.qa || []).concat(map[sec.id]); });
+}
 const subj = id => SUBJECTS.find(s => s.id === id);
 
 /* ---------- Niveles y logros ---------- */
@@ -48,7 +53,22 @@ const PKEY = "dayana_player_v2";
 function load(k, d){ try{ return JSON.parse(localStorage.getItem(k)) || d; }catch(e){ return d; } }
 function store(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 let P = Object.assign({name:"", avatar:"🦒", xp:0, badges:{}, sound:true, streak:{last:"", n:0}, played:0, subj:{}}, load(PKEY, {}));
-function save(){ store(PKEY, P); }
+function save(){ P.updated = Date.now(); store(PKEY, P); if(window.cloudSave) window.cloudSave(); }
+/* Lo usa el login de Google para cargar el progreso guardado en la nube */
+function setPlayer(data){
+  P = Object.assign({name:"", avatar:"🦒", xp:0, badges:{}, sound:true, streak:{last:"", n:0}, played:0, subj:{}, seen:{}, seenN:0}, data);
+  store(PKEY, P); renderHUD(); route();
+}
+/* Elige n elementos priorizando los que hace más tiempo que no salen,
+   para que cada partida sea distinta (unas 10 variaciones antes de repetir). */
+function pickFresh(key, items, n, idOf){
+  P.seen = P.seen || {}; P.seenN = P.seenN || 0;
+  const seen = P.seen[key] = P.seen[key] || {};
+  const id = idOf || (x => typeof x === 'string' ? x : JSON.stringify(x).slice(0, 80));
+  const out = shuffle(items).sort((a,b) => (seen[id(a)]||0) - (seen[id(b)]||0)).slice(0, n);
+  out.forEach(x => seen[id(x)] = ++P.seenN);
+  return shuffle(out);
+}
 function prog(sid){
   if(!P.subj[sid]) P.subj[sid] = {};
   return Object.assign(P.subj[sid], Object.assign({read:{}, cards:{}, easy:{}, hard:{}, games:{}, arcade:{}, final:null, misses:{}, laps:0}, P.subj[sid]));
@@ -277,9 +297,11 @@ function viewHub(){
     <div class="sect-title">Tu progreso</div>
     <button class="mission" data-go="#/niveles"><div class="ic" style="background:var(--yellow)">${L.cur.icon}</div>
       <div><div class="t">Camino de niveles</div><div class="s">Mira los niveles que ya tienes y los que vienen</div></div><div class="st">▶</div></button>
+    ${window.cloudCard ? cloudCard() : ''}
     <button class="mission" data-go="#/avatar"><div class="ic" style="background:var(--pink)">${P.avatar}</div>
       <div><div class="t">Cambiar personaje</div><div class="s">Avatar y nombre</div></div><div class="st">▶</div></button>
     <footer>Hecho con cariño para ${esc(P.name)} 💛</footer>`);
+  if(window.cloudBind) cloudBind();
 }
 
 function viewLevels(){
@@ -450,26 +472,53 @@ function viewRead(s, i){
 function prepEasy(s, si, qi){
   const q = s.sections[si].quiz[qi];
   const order = shuffle(q.opts.map((_,k) => k));
-  return {kind:'mc', q:q.q, fb:q.fb, opts:order.map(k => q.opts[k]), a:order.indexOf(q.a), id:si+':'+qi, si};
+  return {kind:'mc', q:q.q, fb:q.fb, opts:order.map(k => q.opts[k]), a:order.indexOf(q.a), id:'q:'+si+':'+qi, si};
 }
-function prepHard(s, si, hi){ const h = s.sections[si].hard[hi]; return Object.assign({kind:'write', si}, h); }
+/* Pregunta de elegir creada con el banco: las opciones falsas son respuestas de otras
+   preguntas del mismo tema con un largo parecido (así la larga no delata la correcta). */
+function prepQAMC(s, si, k){
+  const [q, a] = s.sections[si].qa[k];
+  let pool = s.sections[si].qa.map(x => x[1]);
+  if(new Set(pool).size < 6) pool = pool.concat(s.sections.flatMap(x => (x.qa||[]).map(y => y[1])));
+  pool = [...new Set(pool)].filter(x => norm(x) !== norm(a));
+  const wrong = shuffle(pool.sort((x,y) => Math.abs(x.length - a.length) - Math.abs(y.length - a.length)).slice(0, 6)).slice(0, 3);
+  const opts = shuffle([a, ...wrong]);
+  return {kind:'mc', q, fb:'Respuesta: ' + a, opts, a: opts.indexOf(a), id:'a:'+si+':'+k, si};
+}
+function prepHard(s, si, hi){ const h = s.sections[si].hard[hi]; return Object.assign({kind:'write', si, id:'h:'+si+':'+hi}, h); }
+function prepQAWrite(s, si, k){
+  const [q, a, ok] = s.sections[si].qa[k];
+  return {kind:'write', si, q, ans:a, ok: ok && ok.length ? ok : [a], id:'w:'+si+':'+k};
+}
+function fromId(s, id){
+  const [t, si, k] = id.split(':'); const sec = s.sections[+si];
+  if(!sec) return null;
+  if(t === 'q' && sec.quiz[+k]) return prepEasy(s, +si, +k);
+  if(t === 'a' && sec.qa && sec.qa[+k]) return prepQAMC(s, +si, +k);
+  if(t === 'h' && sec.hard[+k]) return prepHard(s, +si, +k);
+  if(t === 'w' && sec.qa && sec.qa[+k]) return prepQAWrite(s, +si, +k);
+  return null;
+}
+function easyIds(s, si){ const sec = s.sections[si]; return [...sec.quiz.map((_,k) => 'q:'+si+':'+k), ...(sec.qa||[]).map((_,k) => 'a:'+si+':'+k)]; }
+function hardIds(s, si){ const sec = s.sections[si]; return [...sec.hard.map((_,k) => 'h:'+si+':'+k), ...(sec.qa||[]).map((_,k) => 'w:'+si+':'+k)]; }
 function checkWritten(q, text){
   const t = norm(text);
   if(t.length < 2) return false;
   if(Array.isArray(q.ok[0])) return q.ok.every(g => g.some(w => t.includes(norm(w))));
   return q.ok.some(w => t.includes(norm(w)));
 }
-function allEasy(s){ const r = []; s.sections.forEach((sec,si) => sec.quiz.forEach((_,qi) => r.push(prepEasy(s,si,qi)))); return r; }
+function allEasy(s){ return shuffle(s.sections.flatMap((_,si) => easyIds(s, si))).map(id => fromId(s, id)).filter(Boolean); }
 
 function runQuiz(s, cfg){
   const p = prog(s.id);
   let qs, title, back;
-  if(cfg.mode === 'easy'){ qs = shuffle(s.sections[cfg.i].quiz.map((_,k) => prepEasy(s,cfg.i,k))); title = '🟢 ' + s.sections[cfg.i].title; back = `#/s/${s.id}/t/${cfg.i}`; }
-  else if(cfg.mode === 'hard'){ qs = shuffle(s.sections[cfg.i].hard.map((_,k) => prepHard(s,cfg.i,k))); title = '🔴 ' + s.sections[cfg.i].title; back = `#/s/${s.id}/t/${cfg.i}`; }
-  else if(cfg.mode === 'final'){ qs = []; s.sections.forEach((sec,si) => sec.hard.forEach((_,k) => qs.push(prepHard(s,si,k)))); qs = shuffle(qs); title = '🐲 Jefe final'; back = `#/s/${s.id}`; }
+  if(cfg.mode === 'easy'){ qs = pickFresh(s.id+':easy:'+cfg.i, easyIds(s, cfg.i), 7).map(id => fromId(s, id)); title = '🟢 ' + s.sections[cfg.i].title; back = `#/s/${s.id}/t/${cfg.i}`; }
+  else if(cfg.mode === 'hard'){ qs = pickFresh(s.id+':hard:'+cfg.i, hardIds(s, cfg.i), 6).map(id => fromId(s, id)); title = '🔴 ' + s.sections[cfg.i].title; back = `#/s/${s.id}/t/${cfg.i}`; }
+  else if(cfg.mode === 'final'){ qs = pickFresh(s.id+':final', s.sections.flatMap((_,si) => hardIds(s, si)), 20).map(id => fromId(s, id)); title = '🐲 Jefe final'; back = `#/s/${s.id}`; }
   else if(cfg.mode === 'speed'){ qs = shuffle(allEasy(s)); title = '⚡ Contrarreloj'; back = `#/s/${s.id}/arcade`; }
   else if(cfg.mode === 'fallos'){
-    qs = shuffle(Object.keys(p.misses).map(id => { const [si,qi] = id.split(':').map(Number); return s.sections[si] && s.sections[si].quiz[qi] ? prepEasy(s,si,qi) : null; }).filter(Boolean));
+    Object.keys(p.misses).forEach(id => { if(!fromId(s, id)) delete p.misses[id]; });
+    qs = shuffle(Object.keys(p.misses)).slice(0, 15).map(id => fromId(s, id));
     title = '🩹 Caja de fallos'; back = `#/s/${s.id}`;
     if(!qs.length){ toast('¡No tienes fallos guardados! 🎉'); return go(back); }
   }
@@ -652,6 +701,7 @@ function runGame(s, g, ctx){
       big: null, starsHtml: starsTxt(stars,3), xp, msg: errors === 0 ? '¡Sin ningún fallo! 🏆' : 'Fallos: ' + errors + '. ¿Lo intentas sin fallar?',
       retry: () => route(), back}), 450);
   };
+  g = vary(s, g, ctx);
   const G = {order:gOrder, match:gMatch, classify:gClassify, tf:gTF, hangman:gHangman, pick:gPick, memory:gMemory}[g.type];
   G(g, {alive: () => RID === myRID, hud, miss, hit, finish, get errors(){ return errors; }, body: $('#gbody')});
 }
@@ -793,6 +843,42 @@ function gMemory(g, X){
   });
 }
 
+/* Cada partida coge otro trozo del banco: mezcla los datos del juego con el banco
+   pregunta → respuesta del tema y elige los que hace más tiempo que no salen. */
+function shortQA(list, ql, al){ return list.filter(x => x[0].length <= ql && x[1].length <= al); }
+function vary(s, g, ctx){
+  const secs = ctx.arcade != null ? s.sections : [s.sections[ctx.i]];
+  const qa = secs.flatMap(sec => sec.qa || []);
+  const key = s.id + ':g:' + (ctx.arcade != null ? 'a' + ctx.arcade : s.sections[ctx.i].id + ':' + ctx.k);
+  const id = x => String(x[0]);
+  g = Object.assign({}, g);
+  if(g.type === 'match') g.pairs = pickFresh(key, g.pairs.concat(shortQA(qa, 45, 32).map(x => [x[1], x[0]])), 5, id);
+  if(g.type === 'memory') g.pairs = pickFresh(key, g.pairs.concat(shortQA(qa, 30, 22).map(x => [x[0], x[1]])), 6, id);
+  if(g.type === 'classify') g.items = pickFresh(key, g.items, 8, id);
+  if(g.type === 'hangman'){
+    // Solo términos clave: fuera números, verbos y palabras genéricas
+    const generic = /^(tres|seis|sete|catro|cuatro|varias|aumenta|diminúe|ascende|afúndese|negra|natural|sólidos|técnico|matemático|funcional|programada|tecnológica|herramientas|conocimientos|materiales|duradero|desechable)$/i;
+    const words = qa.filter(x => /^[a-záéíóúñü]{5,13}$/i.test(x[1]) && !generic.test(x[1])).map(x => [x[1], x[0]]);
+    const uniq = {}; g.words.concat(words).forEach(w => { uniq[norm(w[0])] = uniq[norm(w[0])] || w; });
+    g.words = pickFresh(key, Object.values(uniq), g.max || 3, id);
+  }
+  if(g.type === 'tf'){
+    const answers = qa.map(x => x[1]);
+    const made = qa.map(x => {
+      if(Math.random() < .5) return [x[0] + ' → ' + x[1], true];
+      const others = answers.filter(a => norm(a) !== norm(x[1]));
+      return others.length ? [x[0] + ' → ' + others[Math.floor(Math.random()*others.length)], false, 'Era: ' + x[1]] : [x[0] + ' → ' + x[1], true];
+    });
+    g.items = pickFresh(key, g.items.concat(made), g.max || 8, id); g.max = 99;
+  }
+  if(g.type === 'pick'){
+    const yes = pickFresh(key + ':y', g.items.filter(x => x[1]), 5, id);
+    const no = pickFresh(key + ':n', g.items.filter(x => !x[1]), 4, id);
+    g.items = yes.concat(no);
+  }
+  return g;
+}
+
 /* ---------- Zona Arcade: 5 juegos mezclados (se crean solos con los datos) ---------- */
 function arcadeGames(s){
   const all = t => s.sections.flatMap(sec => sec.games.filter(g => g.type === t));
@@ -805,7 +891,7 @@ function arcadeGames(s){
     {type:'hangman', title:'Palabras ocultas', words: shuffle(words), max:4, desc:'4 palabras de todo el temario'},
     {type:'tf', title:'V o F relámpago', items: shuffle(tf), max:12, desc:'12 frases de todos los temas'},
     {type:'classify', title:'¿De qué tema es?', prompt:'¿A qué tema pertenece esta pregunta?', bins: picks.map(i => s.sections[i].title),
-      items: shuffle(picks.flatMap((si,b) => s.sections[si].quiz.map(q => [q.q, b]))).slice(0, 9), desc:'Adivina el tema de cada pregunta'},
+      items: shuffle(picks.flatMap((si,b) => s.sections[si].quiz.map(q => [q.q, b]).concat((s.sections[si].qa||[]).map(x => [x[0], b])))), desc:'Adivina el tema de cada pregunta'},
     {type:'speed', title:'Contrarreloj', desc:'60 segundos: ¿cuántas aciertas?'}
   ];
 }
@@ -833,6 +919,7 @@ function runArcade(s, k){
 
 /* ---------- Arranque ---------- */
 function boot(){
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
   updateStreak(); renderHUD();
   $('#soundBtn').onclick = () => { P.sound = !P.sound; save(); renderHUD(); };
   window.addEventListener('hashchange', route);
