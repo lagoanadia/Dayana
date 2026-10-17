@@ -1,6 +1,6 @@
 /* Service worker: la app funciona sin conexión.
    Sube VERSION cada vez que cambies archivos para que se actualice. */
-const VERSION = 'v4';
+const VERSION = 'v5';
 const FILES = ['./', 'index.html', 'css/game.css', 'js/engine.js', 'js/config.js', 'js/cloud.js',
   'subjects/tecnologia.js', 'subjects/bioloxia.js', 'subjects/qa_tecnologia.js', 'subjects/qa_bioloxia.js',
   'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
