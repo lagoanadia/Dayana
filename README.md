@@ -11,10 +11,16 @@ Web de repaso con gamificación (XP, niveles, estrellas, logros, minijuegos). Si
 - Cada tema tiene un banco pregunta → respuesta en `subjects/qa_*.js`. Tests y minijuegos cogen cada vez las preguntas que hace más tiempo que no salen.
 
 ## Login con Google (guardar el progreso)
-1. Google Cloud Console → activa **Google Drive API**.
-2. Pantalla de consentimiento OAuth: añade los permisos `drive.appdata` y `userinfo.email`, y su correo como usuaria de prueba.
-3. Credenciales → ID de cliente OAuth (Aplicación web) → en *Orígenes de JavaScript autorizados* pon la URL de Vercel (`https://TU-APP.vercel.app`). No hace falta URI de redirección.
-4. Pega el ID en `js/config.js`.
+Como en Synaptic: login normal con `/callback` (solo nombre y correo, entra cualquier cuenta) y el progreso se guarda en una base de datos de Vercel.
+
+1. **Google Cloud Console → Credenciales → tu cliente OAuth**
+   - Orígenes de JavaScript: `https://day-study.vercel.app`
+   - URI de redirección: `https://day-study.vercel.app/callback`
+2. **Vercel → Settings → Environment Variables**: `GOOGLE_CLIENT_SECRET` = el secreto del cliente.
+3. **Vercel → Storage → Create → Upstash for Redis** (gratis) y conéctalo a este proyecto. Crea solas las variables `KV_REST_API_URL` y `KV_REST_API_TOKEN`.
+4. Vuelve a desplegar (Deployments → Redeploy).
+
+Código: `api/auth/login.js`, `api/auth/callback.js`, `api/auth/logout.js`, `api/progress.js`, `js/cloud.js`.
 
 ## App instalable (PWA)
 - iPhone/iPad: abrir en Safari → Compartir → «Añadir a pantalla de inicio».

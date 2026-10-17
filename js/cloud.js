@@ -1,104 +1,79 @@
 /* =========================================================
-   Login con Google (redirección a /callback) + guardado del
-   progreso en Google Drive (carpeta oculta de la app).
-   Configuración en Google Cloud Console:
+   Login con Google + guardado del progreso en la base de datos
+   de Vercel. Igual que en Synaptic: solo pide nombre y correo,
+   así cualquier cuenta de Google puede entrar.
+   Google Cloud Console:
      · Orígenes de JavaScript: https://day-study.vercel.app
      · URI de redirección:     https://day-study.vercel.app/callback
    ========================================================= */
 (function(){
-  const CID = window.GOOGLE_CLIENT_ID;
-  if(!CID) return;
-  const SCOPE = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
-  const FILE = 'progreso.json';
-  const REDIRECT = location.origin + '/callback';
+  if(!location.protocol.startsWith('http')) return;   // abierto como archivo: sin login
   const read = k => { try{ return JSON.parse(localStorage.getItem(k)) || {}; }catch(e){ return {}; } };
-  const write = (k, v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
-  const C = Object.assign({on:false, email:'', last:0, pending:false}, read('cloud_v1'));
-  const keep = () => write('cloud_v1', C);
-  let T = read('cloud_token'), fileId = null, timer = null, busy = false;
-  const valid = () => T.token && Date.now() < T.exp;
+  const C = Object.assign({on:false, email:'', last:0, pending:false}, read('cloud_v2'));
+  const keep = () => { try{ localStorage.setItem('cloud_v2', JSON.stringify(C)); }catch(e){} };
+  let timer = null, online = false;
 
-  function login(silent){
-    const state = Math.random().toString(36).slice(2);
-    try{ sessionStorage.setItem('oauth_state', state); }catch(e){}
-    const q = new URLSearchParams({client_id: CID, redirect_uri: REDIRECT, response_type: 'token', scope: SCOPE,
-      include_granted_scopes: 'true', state, prompt: silent ? 'none' : 'select_account'});
-    if(C.email) q.set('login_hint', C.email);
-    location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + q;
-  }
-  async function api(url, opts){
-    const r = await fetch(url, Object.assign({}, opts, {headers: Object.assign({Authorization: 'Bearer ' + T.token}, (opts||{}).headers)}));
-    if(r.status === 401){ T = {}; write('cloud_token', T); refresh(); throw new Error('401'); }
-    if(!r.ok) throw new Error(r.status);
-    return r;
-  }
-  async function sync(){
-    if(busy) return; busy = true;
+  async function load(){
     try{
-      if(!C.email){ const u = await (await api('https://www.googleapis.com/oauth2/v3/userinfo')).json(); C.email = u.email || ''; }
-      const list = await (await api(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D'${FILE}'&fields=files(id)`)).json();
-      fileId = list.files && list.files[0] ? list.files[0].id : null;
-      let restored = false;
-      if(fileId){
-        const remote = await (await api(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`)).json();
-        // Se queda con el progreso que tenga más XP
-        if((remote.xp || 0) > (P.xp || 0)){ C.on = true; keep(); setPlayer(remote); restored = true; }
-      }
-      if(!restored) await upload();
+      const r = await fetch('/api/progress', {credentials: 'same-origin'});
+      if(r.status === 401){ C.on = false; keep(); online = false; refresh(); return; }
+      if(!r.ok) throw new Error(r.status);
+      const j = await r.json();
       const first = !C.on;
-      C.on = true; C.pending = false; C.last = Date.now(); keep(); refresh();
-      if(restored) toast('☁️ Progreso recuperado de Google', true);
-      else if(first) toast('☁️ Conectada: tu progreso se guarda en Google');
-    }catch(e){ refresh(); }
-    busy = false;
+      C.on = true; C.email = j.email; online = true; keep();
+      // Se queda con el progreso que tenga más XP
+      if(j.data && (j.data.xp || 0) > (P.xp || 0)){ setPlayer(j.data); toast('☁️ Progreso recuperado de tu cuenta', true); }
+      else { await upload(); if(first) toast('☁️ Conectada: tu progreso se guarda en tu cuenta'); }
+      refresh();
+    }catch(e){ online = false; refresh(); }
   }
   async function upload(){
-    const body = JSON.stringify(P);
-    if(fileId){
-      await api(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body});
-    } else {
-      const fd = new FormData();
-      fd.append('metadata', new Blob([JSON.stringify({name: FILE, parents: ['appDataFolder']})], {type:'application/json'}));
-      fd.append('file', new Blob([body], {type:'application/json'}));
-      fileId = (await (await api('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {method:'POST', body: fd})).json()).id;
-    }
+    const r = await fetch('/api/progress', {method: 'PUT', credentials: 'same-origin', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(P)});
+    if(r.status === 401){ C.on = false; keep(); refresh(); return; }
+    if(!r.ok) throw new Error(r.status);
     C.last = Date.now(); C.pending = false; keep(); refresh();
   }
   window.cloudSave = function(){
     if(!C.on) return;
     clearTimeout(timer);
-    timer = setTimeout(() => {
-      if(!valid()){ C.pending = true; keep(); refresh(); return; }
-      (fileId ? upload() : sync()).catch(() => { C.pending = true; keep(); });
-    }, 2500);
+    timer = setTimeout(() => upload().catch(() => { C.pending = true; keep(); }), 2000);
   };
   window.cloudCard = function(){
-    const ok = C.on && valid();
-    const sub = ok ? 'Guardado en ' + esc(C.email) + (C.last ? ' · ' + new Date(C.last).toLocaleTimeString().slice(0,5) : '')
-      : C.on ? 'Toca para reconectar' + (C.pending ? ' y guardar lo último' : '') + ' (' + esc(C.email) + ')'
-      : 'Inicia sesión para no perder nunca tu progreso';
+    const ok = C.on;
+    const sub = ok ? 'Guardado en ' + esc(C.email) + (C.last ? ' · ' + new Date(C.last).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '') + (C.pending ? ' · pendiente de subir' : '')
+                   : 'Inicia sesión para no perder nunca tu progreso';
     return `<button class="mission ${ok ? 'done' : ''}" id="cloudBtn"><div class="ic" style="background:#fff;border:2px solid var(--line)">☁️</div>
-      <div><div class="t">${C.on ? 'Cuenta de Google' : 'Guardar con Google'}</div><div class="s">${sub}</div></div><div class="st">${ok ? '✅' : '▶'}</div></button>`;
+      <div><div class="t">${ok ? 'Cuenta de Google' : 'Entrar con Google'}</div><div class="s">${sub}</div></div><div class="st">${ok ? '✅' : '▶'}</div></button>`;
   };
   window.cloudBind = function(){
     const b = document.getElementById('cloudBtn'); if(!b) return;
     b.onclick = () => {
-      if(C.on && valid()){
-        confirmBox('¿Cerrar sesión?', 'Tu progreso se queda guardado en Google y en este dispositivo.', 'Cerrar sesión', () => {
-          fetch('https://oauth2.googleapis.com/revoke?token=' + T.token, {method:'POST'}).catch(() => {});
-          T = {}; write('cloud_token', T); C.on = false; C.email = ''; keep(); refresh();
+      if(C.on){
+        confirmBox('¿Cerrar sesión?', 'Tu progreso se queda guardado en tu cuenta y en este dispositivo.', 'Cerrar sesión', async () => {
+          await fetch('/api/auth/logout', {method: 'POST', credentials: 'same-origin'}).catch(() => {});
+          C.on = false; C.email = ''; keep(); refresh();
         });
-      } else login(false);
+      } else location.href = '/api/auth/login';
     };
   };
-  function refresh(){ if(location.hash.replace(/^#\/?/, '') === '' && typeof route === 'function') route(); }
+  function refresh(){ if(location.hash.replace(/^#\/?/, '').split('?')[0] === '' && typeof route === 'function') route(); }
 
-  // Al abrir la app: ¿venimos del login? ¿el permiso sigue valiendo?
+  const MSG = {
+    access_denied: 'Has cancelado el inicio de sesión.',
+    sin_bd: 'Falta conectar la base de datos en Vercel (Storage → Upstash Redis).',
+    falta_secreto: 'Falta poner GOOGLE_CLIENT_SECRET en las variables de Vercel.',
+    state: 'La sesión caducó, prueba otra vez.',
+    token: 'Google no devolvió la cuenta, prueba otra vez.',
+    error: 'No se pudo iniciar sesión, prueba otra vez.'
+  };
   document.addEventListener('DOMContentLoaded', () => setTimeout(() => {
-    if(T.error){
-      const why = T.error === 'access_denied' ? 'Google no ha dado permiso. Revisa que tu correo esté en "Test users" o que la app esté publicada.' : 'No se pudo conectar con Google (' + T.error + ').';
-      toast('⚠️ ' + why); T = {}; write('cloud_token', T); return;
+    const m = location.hash.match(/[?&]login=([a-z_]+)/);
+    if(m){
+      history.replaceState(null, '', location.pathname + '#/');
+      if(m[1] !== 'ok') toast('⚠️ ' + (MSG[m[1]] || MSG.error));
     }
-    if(valid()) sync();
-  }, 300));
+    load();
+  }, 200));
+  // Al volver a la app (por ejemplo desde otra pestaña), sube lo pendiente
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && C.pending) upload().catch(() => {}); });
 })();

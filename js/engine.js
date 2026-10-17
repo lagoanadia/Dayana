@@ -216,7 +216,7 @@ function go(h){ if(location.hash === h) route(); else location.hash = h; }
 function route(){
   RID++;
   if(cleanup){ cleanup(); cleanup = null; }
-  const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  const parts = location.hash.replace(/^#\/?/, '').split('?')[0].split('/').filter(Boolean);
   window.scrollTo(0,0);
   if(!P.name && parts[0] !== 'avatar') return go('#/avatar');
   if(!parts.length) return viewHub();
