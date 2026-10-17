@@ -7,7 +7,7 @@
   if(!CID) return;
   const SCOPE = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
   const FILE = 'progreso.json';
-  let token = null, expires = 0, fileId = null, client = null, timer = null, needsLogin = false;
+  let failed = false, token = null, expires = 0, fileId = null, client = null, timer = null, needsLogin = false;
   const C = Object.assign({on:false, email:'', last:0}, (() => { try{ return JSON.parse(localStorage.getItem('cloud_v1')) || {}; }catch(e){ return {}; } })());
   const keep = () => { try{ localStorage.setItem('cloud_v1', JSON.stringify(C)); }catch(e){} };
 
@@ -18,6 +18,7 @@
     if(C.on) needsLogin = true;   // se reconecta en el primer toque (los navegadores lo exigen)
     refresh();
   };
+  s.onerror = () => { failed = true; };
   document.head.appendChild(s);
 
   document.addEventListener('click', () => { if(needsLogin && client){ needsLogin = false; client.requestAccessToken({prompt: ''}); } }, true);
@@ -67,7 +68,6 @@
     }, 2500);
   };
   window.cloudCard = function(){
-    if(!client) return '';
     const sub = C.on ? (token ? 'Guardado en ' + esc(C.email) + (C.last ? ' · ' + new Date(C.last).toLocaleTimeString().slice(0,5) : '') : 'Toca para reconectar con ' + esc(C.email)) : 'Inicia sesión para no perder nunca tu progreso';
     return `<button class="mission ${C.on && token ? 'done' : ''}" id="cloudBtn"><div class="ic" style="background:#fff;border:2px solid var(--line)">☁️</div>
       <div><div class="t">${C.on ? 'Cuenta de Google' : 'Guardar con Google'}</div><div class="s">${sub}</div></div><div class="st">${C.on && token ? '✅' : '▶'}</div></button>`;
@@ -79,6 +79,8 @@
         confirmBox('¿Cerrar sesión?', 'Tu progreso se queda guardado en Google y en este dispositivo.', 'Cerrar sesión', () => {
           google.accounts.oauth2.revoke(token, () => {}); token = null; C.on = false; C.email = ''; keep(); refresh();
         });
+      } else if(!client){
+        toast(failed ? '⚠️ No se pudo cargar Google. Quita el bloqueador de anuncios o prueba en otro navegador.' : '⏳ Cargando Google… prueba otra vez en unos segundos');
       } else { needsLogin = false; client.requestAccessToken({prompt: C.on ? '' : 'consent'}); }
     };
   };
