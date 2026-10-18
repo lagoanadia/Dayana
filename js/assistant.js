@@ -1,6 +1,6 @@
 /* =========================================================
    Pío 🐥: asistente de dudas (IA con Groq, vía /api/ask)
-   Sale en las pantallas de teoría y temas; se esconde en tests y juegos.
+   Chat abierto en toda la app; solo se esconde en los tests.
    ========================================================= */
 (function(){
   const msgs = [];          // conversación de esta sesión
@@ -17,7 +17,7 @@
       <button class="icon-btn" id="pioClose" aria-label="Cerrar">✕</button></div>
     <div class="pio-msgs" id="pioMsgs"></div>
     <div class="pio-chips" id="pioChips"></div>
-    <form class="pio-form" id="pioForm"><input id="pioIn" autocomplete="off" maxlength="600" placeholder="Pregúntame lo que no entiendas..."><button class="btn small" id="pioSend">➤</button></form>`;
+    <form class="pio-form" id="pioForm"><input id="pioIn" autocomplete="off" maxlength="600" placeholder="Pregúntame lo que quieras..."><button class="btn small" id="pioSend">➤</button></form>`;
   document.body.append(btn, panel);
 
   /* ¿Dónde está? Asignatura, tema y su teoría como contexto */
@@ -35,10 +35,10 @@
     } else out.context = s.sections.map(x => x.title).join(', ');
     return out;
   }
-  // Escondido en tests, juegos y chapar (¡nada de copiar!)
+  // Chat abierto en toda la app; solo se esconde en los tests (¡nada de copiar!)
   function visible(){
     const h = location.hash;
-    return !!P.name && !/\/(facil|dificil|juego|chapar|jefe|fallos|arcade\/\d)/.test(h) && !/#\/avatar/.test(h);
+    return !!P.name && !/\/(facil|dificil|jefe|fallos)/.test(h) && !/#\/avatar/.test(h);
   }
   function sync(){ btn.hidden = !visible(); if(!visible() && open) toggle(false); }
   window.addEventListener('hashchange', sync);
@@ -49,13 +49,13 @@
     if(v){
       const w = where();
       $('#pioWhere').textContent = w.topic ? w.subject + ' · ' + w.topic : w.subject || 'Estudiar Jugando';
-      if(!msgs.length) add('assistant', '¡Hola, ' + (P.name || '') + '! 🐥 Soy Pío. Pregúntame lo que no entiendas' + (w.topic ? ' de «' + w.topic + '»' : '') + ' y te lo explico fácil.');
+      if(!msgs.length) add('assistant', '¡Hola, ' + (P.name || '') + '! 🐥 Soy Pío. Pregúntame lo que quieras: dudas' + (w.topic ? ' de «' + w.topic + '»' : '') + ', curiosidades, palabras que no entiendes… ¡lo que sea!');
       chips(); setTimeout(() => $('#pioIn').focus(), 100);
     }
   }
   function chips(){
     const w = where();
-    const list = w.topic ? ['Explícamelo más fácil', 'Ponme un ejemplo', 'Hazme una pregunta para practicar', '¿Qué es lo más importante?'] : ['¿Cómo estudio mejor?', 'Ayúdame a organizarme'];
+    const list = w.topic ? ['Explícamelo más fácil', 'Ponme un ejemplo', 'Hazme una pregunta para practicar', '¿Qué es lo más importante?'] : ['¿Cómo estudio mejor?', 'Cuéntame una curiosidad', 'Ayúdame a organizarme'];
     $('#pioChips').innerHTML = list.map(t => `<button type="button" class="toggle">${t}</button>`).join('');
     $('#pioChips').querySelectorAll('button').forEach(b => b.onclick = () => ask(b.textContent));
   }
