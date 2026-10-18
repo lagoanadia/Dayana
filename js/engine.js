@@ -4,6 +4,11 @@
    ========================================================= */
 const SUBJECTS = [];
 function registerSubject(def){ SUBJECTS.push(def); }
+/* Frases clave para el modo chapar: addFrases("tecnologia", {intro:["frase", ...]}) */
+function addFrases(sid, map){
+  const s = SUBJECTS.find(x => x.id === sid); if(!s) return;
+  s.sections.forEach(sec => { if(map[sec.id]) sec.frases = (sec.frases || []).concat(map[sec.id]); });
+}
 /* Bancos pregunta → respuesta: addQA("tecnologia", {intro:[[pregunta, respuesta, claves?], ...]}) */
 function addQA(sid, map){
   const s = SUBJECTS.find(x => x.id === sid); if(!s) return;
@@ -71,7 +76,7 @@ function pickFresh(key, items, n, idOf){
 }
 function prog(sid){
   if(!P.subj[sid]) P.subj[sid] = {};
-  return Object.assign(P.subj[sid], Object.assign({read:{}, cards:{}, easy:{}, hard:{}, games:{}, arcade:{}, final:null, misses:{}, laps:0}, P.subj[sid]));
+  return Object.assign(P.subj[sid], Object.assign({read:{}, cards:{}, easy:{}, hard:{}, games:{}, chapar:{}, arcade:{}, final:null, misses:{}, laps:0}, P.subj[sid]));
 }
 
 /* ---------- Utilidades ---------- */
@@ -201,10 +206,20 @@ function temaStars(s, i){
   const e = p.easy[sec.id], h = p.hard[sec.id];
   return [!!p.read[sec.id], !!(e && e.best >= Math.ceil(e.total/2)), !!(h && h.best >= Math.ceil(h.total/2))].filter(Boolean).length;
 }
-function gameStars(s, i){ const p = prog(s.id); return s.sections[i].games.reduce((a,_,k) => a + ((p.games[s.sections[i].id+':'+k]||{}).stars||0), 0); }
+/* Juegos de un tema: los 3 escritos a mano + los automáticos (Completa, Ordena la frase, ¿Cuál sobra?) */
+function allGames(s, i){
+  const sec = s.sections[i], extra = [];
+  if((sec.frases || []).length){
+    extra.push({type:'fill', title:'Completa la frase'});
+    extra.push({type:'scramble', title:'Ordena la frase'});
+  }
+  if(sec.games.some(g => g.type === 'classify')) extra.push({type:'odd', title:'¿Cuál sobra?'});
+  return sec.games.concat(extra);
+}
+function gameStars(s, i){ const p = prog(s.id); return allGames(s, i).reduce((a,_,k) => a + ((p.games[s.sections[i].id+':'+k]||{}).stars||0), 0); }
 function subjStars(s){
   let got = 0, max = 0;
-  s.sections.forEach((sec,i) => { got += temaStars(s,i) + gameStars(s,i); max += 3 + sec.games.length*3; });
+  s.sections.forEach((sec,i) => { got += temaStars(s,i) + gameStars(s,i) + Math.min(1, (prog(s.id).chapar[sec.id]||{}).stars ? 1 : 0); max += 4 + allGames(s, i).length*3; });
   return {got, max};
 }
 
@@ -232,13 +247,15 @@ function route(){
       if(what === 'leer') return viewRead(s, i);
       if(what === 'facil') return runQuiz(s, {mode:'easy', i});
       if(what === 'dificil') return runQuiz(s, {mode:'hard', i});
-      if(what === 'juego') return runGame(s, s.sections[i].games[+parts[5]], {i, k:+parts[5]});
+      if(what === 'juego'){ const g = allGames(s, i)[+parts[5]]; return g ? runGame(s, g, {i, k:+parts[5]}) : go(`#/s/${s.id}/t/${i}`); }
+      if(what === 'chapar') return runChapar(s, [i]);
     }
     if(parts[2] === 'arcade'){
       if(parts[3] == null) return viewArcade(s);
       return runArcade(s, +parts[3]);
     }
     if(parts[2] === 'jefe') return runQuiz(s, {mode:'final'});
+    if(parts[2] === 'chapar') return runChapar(s, s.sections.map((_,i) => i));
     if(parts[2] === 'fallos') return runQuiz(s, {mode:'fallos'});
   }
   go('#/');
@@ -341,7 +358,7 @@ function viewMap(s){
     const t = temaStars(s,i), side = ['c','l','r','c','r','l'][i % 6];
     return `${i ? '<div class="path-dots"><i></i><i></i><i></i></div>' : ''}
       <div class="node-wrap ${side==='c'?'':side}">
-        <button class="node ${t===3?'done':''} ${i===next?'next':''}" style="background:${COLORS[i%6]};box-shadow:0 7px 0 ${COLORS_D[i%6]}" data-go="#/s/${s.id}/t/${i}">${sec.icon || '📘'}${t===3 && gameStars(s,i) === sec.games.length*3 ? '<span class="crown">👑</span>' : ''}</button>
+        <button class="node ${t===3?'done':''} ${i===next?'next':''}" style="background:${COLORS[i%6]};box-shadow:0 7px 0 ${COLORS_D[i%6]}" data-go="#/s/${s.id}/t/${i}">${sec.icon || '📘'}${t===3 && gameStars(s,i) === allGames(s,i).length*3 ? '<span class="crown">👑</span>' : ''}</button>
         <div class="node-label">${i+1}. ${sec.title}</div><div class="node-stars">${starsTxt(t,3)}</div>
       </div>`;
   }).join('');
@@ -363,6 +380,8 @@ function viewMap(s){
     </div>
     <button class="mission" data-go="#/s/${s.id}/fallos" ${missN ? '' : 'disabled style="opacity:.6"'}><div class="ic" style="background:var(--red)">🩹</div>
       <div><div class="t">Caja de fallos</div><div class="s">${missN ? 'Tienes ' + missN + ' preguntas falladas por repasar' : 'Aquí irán las preguntas que falles'}</div></div><div class="st">${missN ? '▶' : ''}</div></button>
+    <button class="mission" data-go="#/s/${s.id}/chapar"><div class="ic" style="background:var(--purple)">✍️</div>
+      <div><div class="t">Chapar todo</div><div class="s">Frases clave de todos los temas para escribir de memoria</div></div><div class="st">▶</div></button>
     <button class="mission" id="lapBtn"><div class="ic" style="background:var(--teal)">🔁</div>
       <div><div class="t">Nueva vuelta</div><div class="s">Vuelve a empezar el mundo para repasar todo. Mantienes tu XP, nivel y logros.</div></div></button>`);
   $('#lapBtn').onclick = () => confirmBox('¿Empezar una nueva vuelta?', 'Las estrellas de ' + s.name + ' vuelven a 0 para que lo repases todo otra vez. Tu XP, nivel y logros se quedan. Ganarás estrellas (y XP) de nuevo.', 'Sí, ¡otra vuelta!', () => {
@@ -381,7 +400,8 @@ function confirmBox(title, text, ok, fn){
 
 const GAME_INFO = {
   order:{icon:'🧩', name:'Ordena'}, match:{icon:'🔗', name:'Une parejas'}, classify:{icon:'🗂️', name:'Clasifica'},
-  tf:{icon:'✅', name:'Verdadero o falso'}, hangman:{icon:'🔤', name:'Palabra oculta'}, pick:{icon:'🫧', name:'Caza burbujas'}, memory:{icon:'🃏', name:'Memoria'}
+  tf:{icon:'✅', name:'Verdadero o falso'}, hangman:{icon:'🔤', name:'Palabra oculta'}, pick:{icon:'🫧', name:'Caza burbujas'}, memory:{icon:'🃏', name:'Memoria'},
+  clock:{icon:'🕒', name:'El reloj'}, fill:{icon:'✏️', name:'Completa la frase'}, scramble:{icon:'🔀', name:'Ordena la frase'}, odd:{icon:'🕵️', name:'¿Cuál sobra?'}
 };
 function viewTema(s, i){
   const p = prog(s.id), sec = s.sections[i];
@@ -401,8 +421,10 @@ function viewTema(s, i){
       <div><div class="t">Test fácil</div><div class="s">Elige la respuesta${e ? ' · mejor: ' + e.best + '/' + e.total : ''}</div></div><div class="st">${e && e.best>=Math.ceil(e.total/2)?'⭐':'☆'}</div></button>
     <button class="mission ${h && h.best>=Math.ceil(h.total/2)?'done':''}" data-go="#/s/${s.id}/t/${i}/dificil"><div class="ic" style="background:var(--red)">🔴</div>
       <div><div class="t">Test difícil</div><div class="s">Escribe la respuesta${h ? ' · mejor: ' + h.best + '/' + h.total : ''}</div></div><div class="st">${h && h.best>=Math.ceil(h.total/2)?'⭐':'☆'}</div></button>
+    ${(sec.frases||[]).length ? `<button class="mission ${(p.chapar[sec.id]||{}).stars===3?'done':''}" data-go="#/s/${s.id}/t/${i}/chapar"><div class="ic" style="background:var(--purple)">✍️</div>
+      <div><div class="t">Modo chapar</div><div class="s">Lee la frase y escríbela entera de memoria${(p.chapar[sec.id]||{}).best ? ' · mejor: ' + p.chapar[sec.id].best + '%' : ''}</div></div><div class="st">${starsTxt((p.chapar[sec.id]||{}).stars||0,3)}</div></button>` : ''}
     <div class="sect-title">Minijuegos</div>
-    ${sec.games.map((g,k) => {
+    ${allGames(s, i).map((g,k) => {
       const r = p.games[sec.id+':'+k] || {};
       return `<button class="mission ${r.stars===3?'done':''}" data-go="#/s/${s.id}/t/${i}/juego/${k}"><div class="ic" style="background:${COLORS[(k+3)%6]}">${GAME_INFO[g.type].icon}</div>
         <div><div class="t">${g.title || GAME_INFO[g.type].name}</div><div class="s">${GAME_INFO[g.type].name}${r.plays ? ' · jugado ' + r.plays + (r.plays===1?' vez':' veces') : ' · ¡nuevo!'}</div></div><div class="st">${starsTxt(r.stars||0,3)}</div></button>`;
@@ -477,18 +499,19 @@ function prepEasy(s, si, qi){
 /* Pregunta de elegir creada con el banco: las opciones falsas son respuestas de otras
    preguntas del mismo tema con un largo parecido (así la larga no delata la correcta). */
 function prepQAMC(s, si, k){
-  const [q, a] = s.sections[si].qa[k];
+  const [q, a, , why] = s.sections[si].qa[k];
   let pool = s.sections[si].qa.map(x => x[1]);
   if(new Set(pool).size < 6) pool = pool.concat(s.sections.flatMap(x => (x.qa||[]).map(y => y[1])));
-  pool = [...new Set(pool)].filter(x => norm(x) !== norm(a));
+  const first = t => norm(t).split(/[ ,]/)[0];
+  pool = [...new Set(pool)].filter(x => norm(x) !== norm(a) && !(/^(non|no|si)$/.test(first(x)) && first(x) === first(a)));
   const wrong = shuffle(pool.sort((x,y) => Math.abs(x.length - a.length) - Math.abs(y.length - a.length)).slice(0, 6)).slice(0, 3);
   const opts = shuffle([a, ...wrong]);
-  return {kind:'mc', q, fb:'Respuesta: ' + a, opts, a: opts.indexOf(a), id:'a:'+si+':'+k, si};
+  return {kind:'mc', q, fb: why || ('Respuesta: ' + a), opts, a: opts.indexOf(a), id:'a:'+si+':'+k, si};
 }
 function prepHard(s, si, hi){ const h = s.sections[si].hard[hi]; return Object.assign({kind:'write', si, id:'h:'+si+':'+hi}, h); }
 function prepQAWrite(s, si, k){
-  const [q, a, ok] = s.sections[si].qa[k];
-  return {kind:'write', si, q, ans:a, ok: ok && ok.length ? ok : [a], id:'w:'+si+':'+k};
+  const [q, a, ok, why] = s.sections[si].qa[k];
+  return {kind:'write', si, q, ans:a, why, ok: ok && ok.length ? ok : [a], id:'w:'+si+':'+k};
 }
 function fromId(s, id){
   const [t, si, k] = id.split(':'); const sec = s.sections[+si];
@@ -603,9 +626,9 @@ function runQuiz(s, cfg){
     answered = true; inp.disabled = true; $('#wchk').remove();
     const r = inp.getBoundingClientRect(), pos = {clientX:r.left+40, clientY:r.top};
     const fb = $('#qfb');
-    if(checkWritten(q, text)){ good(pos, q); inp.classList.add('ok'); fb.className = 'feedback ok'; fb.textContent = '✓ ¡Correcto! Respuesta: ' + q.ans; }
+    if(checkWritten(q, text)){ good(pos, q); inp.classList.add('ok'); fb.className = 'feedback ok'; fb.textContent = '✓ ¡Correcto! Respuesta: ' + q.ans + (q.why ? '. ' + q.why : ''); }
     else {
-      bad(q, text, q.ans); inp.classList.add('no'); fb.className = 'feedback no'; fb.textContent = '✗ La respuesta era: ' + q.ans + ' ';
+      bad(q, text, q.ans); inp.classList.add('no'); fb.className = 'feedback no'; fb.textContent = '✗ La respuesta era: ' + q.ans + '. ' + (q.why ? q.why + ' ' : '');
       const fix = document.createElement('button'); fix.className = 'btn ghost small'; fix.style.marginTop = '8px';
       fix.textContent = '🙋 La sabía, lo dije con otras palabras';
       fix.onclick = ev => { missed.pop(); good(ev, q); fb.className = 'feedback ok'; fb.textContent = '✓ ¡Vale, cuenta como bien! Respuesta: ' + q.ans; inp.classList.replace('no','ok'); };
@@ -702,7 +725,7 @@ function runGame(s, g, ctx){
       retry: () => route(), back}), 450);
   };
   g = vary(s, g, ctx);
-  const G = {order:gOrder, match:gMatch, classify:gClassify, tf:gTF, hangman:gHangman, pick:gPick, memory:gMemory}[g.type];
+  const G = {order:gOrder, match:gMatch, classify:gClassify, tf:gTF, hangman:gHangman, pick:gPick, memory:gMemory, clock:gClock, fill:gFill, scramble:gScramble, odd:gOdd}[g.type];
   G(g, {alive: () => RID === myRID, hud, miss, hit, finish, get errors(){ return errors; }, body: $('#gbody')});
 }
 
@@ -864,6 +887,242 @@ function gMemory(g, X){
   $('#memMsg').textContent = '👀 ¡Memoriza las cartas! 3';
 }
 
+
+/* ---------- Reloj (inglés): leer la hora con past / to ---------- */
+const NUM = ['twelve','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
+function timeWords(h, m){
+  const nh = NUM[h % 12 === 0 ? 12 : h % 12], next = NUM[(h % 12) + 1];
+  const mw = {5:'five',10:'ten',15:'quarter',20:'twenty',25:'twenty-five',30:'half'};
+  if(m === 0) return nh + " o'clock";
+  if(m <= 30) return mw[m] + ' past ' + nh;
+  return mw[60 - m] + ' to ' + next;
+}
+function clockSVG(h, m, size){
+  const a = m * 6, b = (h % 12) * 30 + m * 0.5;
+  const ticks = Array.from({length: 12}, (_, k) => { const t = k * 30 * Math.PI / 180; return `<text x="${50 + 38 * Math.sin(t)}" y="${54 + -38 * Math.cos(t) + 0}" font-size="9" font-weight="900" text-anchor="middle" fill="#2b1d0e">${k === 0 ? 12 : k}</text>`; }).join('');
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" aria-label="reloj">
+    <circle cx="50" cy="50" r="47" fill="#fff" stroke="#2b1d0e" stroke-width="4"/>${ticks}
+    <line x1="50" y1="50" x2="${50 + 22 * Math.sin(b * Math.PI / 180)}" y2="${50 - 22 * Math.cos(b * Math.PI / 180)}" stroke="#2b1d0e" stroke-width="5" stroke-linecap="round"/>
+    <line x1="50" y1="50" x2="${50 + 34 * Math.sin(a * Math.PI / 180)}" y2="${50 - 34 * Math.cos(a * Math.PI / 180)}" stroke="#ff6a2b" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="50" cy="50" r="3.5" fill="#2b1d0e"/></svg>`;
+}
+function randTime(){ return [1 + Math.floor(Math.random() * 12), 5 * Math.floor(Math.random() * 12)]; }
+/* mode "read": ves un reloj y eliges la frase · mode "find": lees la frase y eliges el reloj */
+function gClock(g, X){
+  let n = 0, lock = false; const N = 8;
+  function show(){
+    if(!X.alive()) return;
+    const [h, m] = randTime(), right = timeWords(h, m);
+    // opciones trampa: confundir past/to, hora siguiente, minutos parecidos
+    const traps = new Map();
+    const add = (hh, mm) => { const w = timeWords(hh, mm); if(w !== right && !traps.has(w)) traps.set(w, [hh, mm]); };
+    add(h, 60 - m === 60 ? 30 : 60 - m); add(h % 12 + 1, m); add(h === 1 ? 12 : h - 1, m); add(h, (m + 15) % 60);
+    while(traps.size < 3){ const [a, b] = randTime(); add(a, b); }
+    const opts = shuffle([[right, [h, m]], ...[...traps.entries()].slice(0, 3)]);
+    X.hud(`<span class="chip">🕒 ${n+1} / ${N}</span>`);
+    if(g.mode === 'find'){
+      X.body.innerHTML = `<p class="prompt">Toca el reloj que marca:</p><div class="tf-card" style="min-height:70px">It's ${right}</div><div class="bins c2" id="ck"></div><div id="cfb" style="margin-top:10px"></div>`;
+      opts.forEach(([w, [hh, mm]]) => {
+        const b = document.createElement('button'); b.className = 'tile'; b.style.display = 'flex'; b.style.justifyContent = 'center'; b.style.padding = '10px';
+        b.innerHTML = clockSVG(hh, mm, 110);
+        b.onclick = () => answer(b, w === right, right, hh, mm);
+        $('#ck').appendChild(b);
+      });
+    } else {
+      X.body.innerHTML = `<p class="prompt">What time is it?</p><div style="display:flex;justify-content:center;margin:10px 0">${clockSVG(h, m, 190)}</div><div class="pool" id="ck" style="flex-direction:column"></div><div id="cfb" style="margin-top:10px"></div>`;
+      opts.forEach(([w]) => {
+        const b = document.createElement('button'); b.className = 'opt'; b.textContent = "It's " + w;
+        b.onclick = () => answer(b, w === right, right, h, m);
+        $('#ck').appendChild(b);
+      });
+    }
+  }
+  function answer(b, ok, right, h, m){
+    if(lock) return; lock = true;
+    const fb = document.createElement('div');
+    if(ok){ b.classList.add(g.mode === 'find' ? 'ok' : 'correct'); X.hit(); fb.className = 'feedback ok'; fb.textContent = '✓ ' + (m < 10 ? h + ':0' + m : h + ':' + m) + " → It's " + right; }
+    else { X.miss(b); X.hud(`<span class="chip">🕒 ${n+1} / ${N}</span>`); fb.className = 'feedback no';
+      fb.textContent = '✗ Era: ' + (m < 10 ? h + ':0' + m : h + ':' + m) + " → It's " + right + (m > 30 ? ' (pasado el 30 → TO y la hora siguiente)' : ''); }
+    $('#cfb').appendChild(fb);
+    setTimeout(() => { lock = false; n++; n >= N ? X.finish() : show(); }, ok ? 1100 : 2600);
+  }
+  show();
+}
+
+/* ---------- Nuevos juegos ---------- */
+const STOP = new Set('a o os as e de do da dos das en no na nos nas un unha uns unhas el la los las y del al con por para que se su sus es son ou o lo como cando máis mais más pola polo entre sobre ten teñen hay hai ao á'.split(' '));
+const cleanW = w => w.replace(/[.,;:¿?¡!()]/g, '');
+function keyWord(f){
+  let ws = f.split(' ').map(cleanW).filter(w => w.length >= 4 && !STOP.has(w.toLowerCase()));
+  if(!ws.length) ws = f.split(' ').map(cleanW).filter(w => w.length >= 2);
+  return ws.sort((a,b) => b.length - a.length)[Math.floor(Math.random() * Math.min(3, ws.length))];
+}
+/* Completa la frase: falta una palabra clave y hay que elegirla */
+function gFill(g, X){
+  let n = 0, lock = false;
+  const pool = [...new Set(g.all.flatMap(f => f.split(' ').map(cleanW)).filter(w => w.length >= 2 && !STOP.has(w.toLowerCase())))];
+  function show(){
+    if(!X.alive()) return;
+    const f = g.frases[n], kw = keyWord(f);
+    const wrong = shuffle(pool.filter(w => norm(w) !== norm(kw)).sort((a,b) => Math.abs(a.length-kw.length) - Math.abs(b.length-kw.length)).slice(0, 8)).slice(0, 3);
+    const opts = shuffle([kw, ...wrong]);
+    X.hud(`<span class="chip">✏️ ${n+1} / ${g.frases.length}</span>`);
+    X.body.innerHTML = `<p class="prompt">Toca la palabra que falta</p><div class="tf-card" style="font-size:19px" id="fc"></div><div class="pool" id="fo"></div><div id="ffb" style="margin-top:12px"></div>`;
+    const re = new RegExp('(^|[^\\p{L}])' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\p{L}])', 'u');
+    $('#fc').textContent = f.replace(re, '$1 ______ ');
+    opts.forEach(o => {
+      const b = document.createElement('button'); b.className = 'tile'; b.textContent = o;
+      b.onclick = () => {
+        if(lock) return;
+        if(o === kw){ lock = true; b.classList.add('ok'); X.hit(); $('#fc').textContent = f; setTimeout(() => { lock = false; n++; n >= g.frases.length ? X.finish() : show(); }, 900); }
+        else { X.miss(b); X.hud(`<span class="chip">✏️ ${n+1} / ${g.frases.length}</span>`); }
+      };
+      $('#fo').appendChild(b);
+    });
+  }
+  show();
+}
+/* Ordena la frase: toca las palabras en orden */
+function gScramble(g, X){
+  let n = 0;
+  function show(){
+    if(!X.alive()) return;
+    const words = g.frases[n].split(' ');
+    let next = 0;
+    X.hud(`<span class="chip">🔀 ${n+1} / ${g.frases.length}</span>`);
+    X.body.innerHTML = `<p class="prompt">Toca las palabras en orden para formar la frase</p><div class="class-item" style="font-size:18px;min-height:90px;text-align:left" id="sb">&nbsp;</div><div class="pool" id="sp"></div>`;
+    const built = [];
+    shuffle(words.map((w,k) => ({w,k}))).forEach(({w}) => {
+      const b = document.createElement('button'); b.className = 'tile'; b.textContent = w;
+      b.onclick = () => {
+        if(norm(w) === norm(words[next])){
+          built.push(w); next++; b.remove(); X.hit(); $('#sb').textContent = built.join(' ');
+          if(next === words.length) setTimeout(() => { n++; n >= g.frases.length ? X.finish() : show(); }, 700);
+        } else { X.miss(b); X.hud(`<span class="chip">🔀 ${n+1} / ${g.frases.length}</span>`); }
+      };
+      $('#sp').appendChild(b);
+    });
+  }
+  show();
+}
+/* ¿Cuál sobra?: 3 son del mismo grupo y una no */
+function gOdd(g, X){
+  let n = 0, lock = false;
+  if(!g.rounds.length){ X.body.innerHTML = '<p class="prompt">No hay datos para este juego.</p>'; return; }
+  function show(){
+    if(!X.alive()) return;
+    const r = g.rounds[n];
+    X.hud(`<span class="chip">🕵️ ${n+1} / ${g.rounds.length}</span>`);
+    X.body.innerHTML = `<p class="prompt">¿Cuál NO encaja con las otras tres?</p><div class="bubbles" id="ob"></div><div id="ofb" style="margin-top:12px"></div>`;
+    r.items.forEach((t,k) => {
+      const b = document.createElement('button'); b.className = 'bubble'; b.textContent = t;
+      b.style.background = COLORS[k%6]; b.style.boxShadow = '0 5px 0 ' + COLORS_D[k%6];
+      b.onclick = () => {
+        if(lock) return; lock = true;
+        const fb = document.createElement('div');
+        if(t === r.odd){ X.hit(); fb.className = 'feedback ok'; fb.textContent = '✓ ¡Eso! «' + r.odd + '» es de ' + r.groupB + ' y las otras de ' + r.groupA + '.'; }
+        else { X.miss(b); X.hud(`<span class="chip">🕵️ ${n+1} / ${g.rounds.length}</span>`); fb.className = 'feedback no'; fb.textContent = '✗ Sobraba «' + r.odd + '»: es de ' + r.groupB + ' y las otras son de ' + r.groupA + '.'; }
+        $('#ofb').appendChild(fb);
+        setTimeout(() => { lock = false; n++; n >= g.rounds.length ? X.finish() : show(); }, t === r.odd ? 1300 : 2600);
+      };
+      $('#ob').appendChild(b);
+    });
+  }
+  show();
+}
+
+/* =========================================================
+   Modo chapar: lee la frase, se tapa y la escribe entera
+   ========================================================= */
+function wordsOf(t){ return norm(t).replace(/[.,;:¿?¡!()"«»]/g, ' ').split(' ').filter(Boolean); }
+/* Compara palabra a palabra (LCS) y dice qué palabras de la frase original acertó */
+function compareText(target, typed){
+  const A = wordsOf(target), B = wordsOf(typed);
+  const dp = Array.from({length: A.length + 1}, () => new Array(B.length + 1).fill(0));
+  for(let i = A.length - 1; i >= 0; i--) for(let j = B.length - 1; j >= 0; j--)
+    dp[i][j] = A[i] === B[j] ? dp[i+1][j+1] + 1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  const okIdx = new Set(); let i = 0, j = 0;
+  while(i < A.length && j < B.length){ if(A[i] === B[j]){ okIdx.add(i); i++; j++; } else if(dp[i+1][j] >= dp[i][j+1]) i++; else j++; }
+  const extra = Math.max(0, B.length - okIdx.size);
+  const pct = A.length ? Math.max(0, Math.round((okIdx.size - extra * 0.5) / A.length * 100)) : 0;
+  return {pct: Math.min(100, pct), okIdx};
+}
+function runChapar(s, idxs){
+  const p = prog(s.id);
+  const all = idxs.flatMap(i => (s.sections[i].frases || []).map(f => ({f, i})));
+  const back = idxs.length === 1 ? `#/s/${s.id}/t/${idxs[0]}` : `#/s/${s.id}`;
+  if(!all.length){ toast('Este tema aún no tiene frases'); return go(back); }
+  const list = pickFresh(s.id + ':chapar:' + idxs.join(','), all, Math.min(5, all.length), x => x.f);
+  const myRID = RID;
+  let n = 0, scores = [], xp = 0, hints = 0;
+  page(`<button class="back" data-go="${back}">← Salir</button>
+    <div class="qtop"><div class="eyebrow">✍️ Modo chapar</div><span class="chip" id="cc"></span></div>
+    <div class="qbar"><div id="cbar" style="width:0%"></div></div>
+    <div class="qcard" id="cbox"></div>`);
+  function read(){
+    if(RID !== myRID) return;
+    const it = list[n]; hints = 0;
+    $('#cc').textContent = (n+1) + ' / ' + list.length;
+    $('#cbar').style.width = (n / list.length * 100) + '%';
+    $('#cbox').innerHTML = `<div class="eyebrow" style="color:var(--purple)">1. Lee y memoriza</div>
+      <div class="qtext" style="margin-top:10px;font-size:23px"></div>
+      <p class="muted" style="margin:0 0 14px">Léela en voz alta 2 o 3 veces. Cuando creas que te la sabes, tápala.</p>
+      <button class="btn purple block" id="cgo">🙈 Ya me la sé, tápala</button>`;
+    $('#cbox .qtext').textContent = it.f;
+    $('#cgo').onclick = write;
+  }
+  function write(){
+    const it = list[n];
+    const target = wordsOf(it.f);
+    $('#cbox').innerHTML = `<div class="eyebrow" style="color:var(--purple)">2. Escríbela entera de memoria</div>
+      <div class="hint" id="chint" hidden></div>
+      <textarea class="w-input" id="ctext" rows="4" autocapitalize="sentences" placeholder="Escribe la frase completa..." style="margin-top:12px;resize:vertical"></textarea>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="btn ghost" id="chelp">💡 Pista</button><button class="btn" id="ccheck">Comprobar</button></div>`;
+    setTimeout(() => $('#ctext') && $('#ctext').focus(), 60);
+    $('#chelp').onclick = () => {
+      hints++;
+      const words = it.f.split(' ');
+      const shown = words.map((w,k) => hints >= 2 || k % 2 === 0 ? w[0] + '_'.repeat(Math.max(0, cleanW(w).length - 1)) + w.slice(cleanW(w).length) : '___').join(' ');
+      $('#chint').hidden = false; $('#chint').textContent = hints >= 3 ? it.f : shown;
+      if(hints >= 3) $('#chelp').disabled = true;
+      toast(hints >= 3 ? '👀 Te enseño la frase entera' : '💡 Pista: primeras letras');
+    };
+    $('#ccheck').onclick = () => {
+      const typed = $('#ctext').value;
+      if(!typed.trim()){ $('#ctext').focus(); return; }
+      const {pct, okIdx} = compareText(it.f, typed);
+      const words = it.f.split(' ');
+      const marked = words.map((w,k) => `<span style="padding:1px 4px;border-radius:6px;background:${okIdx.has(k) ? 'var(--good-soft)' : 'var(--bad-soft)'};color:${okIdx.has(k) ? 'var(--green-d)' : 'var(--red-d)'}">${esc(w)}</span>`).join(' ');
+      const good = pct >= 90;
+      scores.push(hints >= 3 ? Math.min(pct, 50) : pct);
+      if(good){ const g = (hints ? 10 : 20); xp += g; addXP(g); sfx('ok'); if(!hints) confetti(20); } else sfx('bad');
+      $('#cbox').innerHTML = `<div class="eyebrow" style="color:${good ? 'var(--green-d)' : 'var(--red-d)'}">${good ? '¡Muy bien!' : 'Casi…'} ${pct}% de la frase</div>
+        <p class="muted" style="margin:8px 0">En verde lo que pusiste bien, en rojo lo que te faltó:</p>
+        <div style="line-height:2;font-weight:800">${marked}</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+          ${good ? '' : '<button class="btn purple" id="cagain">🔁 Leerla otra vez y repetir</button>'}
+          <button class="btn ${good ? '' : 'ghost'}" id="cnext">${n + 1 < list.length ? 'Siguiente frase →' : 'Ver resultado 🎉'}</button></div>`;
+      if(!good) $('#cagain').onclick = () => { scores.pop(); read(); };
+      $('#cnext').onclick = () => { n++; n >= list.length ? finish() : read(); };
+    };
+  }
+  function finish(){
+    const avg = Math.round(scores.reduce((a,b) => a + b, 0) / scores.length);
+    const stars = avg >= 90 ? 3 : avg >= 70 ? 2 : 1;
+    if(idxs.length === 1){
+      const id = s.sections[idxs[0]].id, prev = p.chapar[id] || {};
+      p.chapar[id] = {best: Math.max(prev.best || 0, avg), stars: Math.max(prev.stars || 0, stars)};
+    }
+    save(); countPlay();
+    if(stars === 3){ confetti(70); sfx('win'); }
+    resultScreen({title: stars === 3 ? '¡Te lo sabes!' : stars === 2 ? '¡Muy bien!' : '¡Sigue practicando!', mood: stars === 3 ? 'happy' : 'ok',
+      big: avg + '%', sub: 'de las frases escritas bien', starsHtml: starsTxt(stars, 3), xp,
+      msg: stars === 3 ? '¡Chapada! 📚' : 'Con un 90% o más consigues 3 estrellas', retry: () => route(), back});
+  }
+  read();
+}
+
 /* Cada partida coge otro trozo del banco: mezcla los datos del juego con el banco
    pregunta → respuesta del tema y elige los que hace más tiempo que no salen. */
 function shortQA(list, ql, al){ return list.filter(x => x[0].length <= ql && x[1].length <= al); }
@@ -891,6 +1150,28 @@ function vary(s, g, ctx){
       return others.length ? [x[0] + ' → ' + others[Math.floor(Math.random()*others.length)], false, 'Era: ' + x[1]] : [x[0] + ' → ' + x[1], true];
     });
     g.items = pickFresh(key, g.items.concat(made), g.max || 8, id); g.max = 99;
+  }
+  if(g.type === 'fill' || g.type === 'scramble'){
+    const fr = secs.flatMap(sec => sec.frases || []);
+    g.all = fr;
+    g.frases = pickFresh(key, g.type === 'scramble' ? fr.filter(f => f.split(' ').length <= 16) : fr, g.type === 'fill' ? 6 : 3);
+  }
+  if(g.type === 'odd'){
+    const cls = secs.flatMap(sec => sec.games.filter(x => x.type === 'classify'));
+    const rounds = [];
+    for(let t = 0; t < 40 && rounds.length < 6; t++){
+      const c = cls[Math.floor(Math.random() * cls.length)];
+      const bins = shuffle(c.bins.map((_,b) => b)).filter(b => c.items.filter(x => x[1] === b).length >= 3);
+      if(!bins.length) continue;
+      const A = bins[0], others = c.items.filter(x => x[1] !== A);
+      if(!others.length) continue;
+      const odd = others[Math.floor(Math.random() * others.length)];
+      const three = shuffle(c.items.filter(x => x[1] === A)).slice(0, 3);
+      const sig = three.map(x => x[0]).sort().join() + odd[0];
+      if(rounds.some(r => r.sig === sig)) continue;
+      rounds.push({sig, items: shuffle([...three.map(x => x[0]), odd[0]]), odd: odd[0], groupA: c.bins[A], groupB: c.bins[odd[1]]});
+    }
+    g.rounds = rounds;
   }
   if(g.type === 'pick'){
     const yes = pickFresh(key + ':y', g.items.filter(x => x[1]), 5, id);

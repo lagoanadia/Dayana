@@ -1,98 +1,103 @@
-/* Banco de combinaciones pregunta → respuesta de Tecnología.
-   Formato: [pregunta, respuesta corta, (opcional) palabras clave válidas al escribir]
-   Se usan para variar tests y minijuegos en cada partida. */
+/* Banco de preguntas para ENTENDER (no solo memorizar) de Tecnología.
+   Formato: [pregunta, respuesta corta, palabras clave válidas al escribir, por qué]
+   Se usan en tests y minijuegos y cambian en cada partida. */
 addQA("tecnologia", {
   intro: [
-    ["Tipo de problema con una única solución", "Problema matemático", ["matematic"]],
-    ["Tipo de problema con varias soluciones que se resuelve construyendo", "Problema técnico", ["tecnic"]],
-    ["¿Qué basta para resolver un problema de mates?", "Papel y bolígrafo", ["papel","boligrafo","lapiz"]],
-    ["¿En qué asignatura se resuelven problemas técnicos?", "Tecnología", ["tecnolog"]],
-    ["¿Qué hay que saber manejar para resolver un problema técnico?", "Herramientas", ["herramienta"]],
-    ["¿Qué hay que conocer que esté disponible?", "Los materiales", ["material"]],
-    ["¿Qué necesitas saber sobre el tema?", "Conocimientos", ["conocimiento"]],
-    ["¿Cómo se resuelve un problema técnico?", "Construyendo algo", ["constru"]],
-    ["¿Cuántas soluciones puede tener un problema técnico?", "Varias", ["varias","muchas","mas de una"]],
-    ["¿Cuántas cosas a la vez hacen falta para un problema tecnológico?", "Tres", ["tres","3"]],
-    ["Diseñar una estantería es un problema...", "Técnico", ["tecnic"]],
-    ["Calcular 25 × 4 es un problema...", "Matemático", ["matematic"]]
+    ["Quieres un mueble para guardar tus zapatillas. ¿Qué tipo de problema es?", "Problema técnico", ["tecnic"], "Tiene varias soluciones posibles y se resuelve construyendo algo."],
+    ["Calcular cuántas baldas caben en un armario, ¿qué tipo de problema es?", "Problema matemático", ["matematic"], "Tiene una única respuesta y se resuelve con papel y bolígrafo."],
+    ["Dos compañeros resuelven el mismo problema técnico y construyen objetos distintos. ¿Alguno está mal?", "No, hay varias soluciones", ["no","varias"], "Los problemas técnicos tienen varias soluciones válidas."],
+    ["Tienes buenas ideas pero no sabes usar la sierra. ¿Qué te falta para resolver el problema?", "Saber manejar herramientas", ["herramienta"], "Hacen falta conocimientos, herramientas y materiales a la vez."],
+    ["Diseñas una caja de papel para guardar agua. ¿Qué has olvidado conocer?", "Los materiales", ["material"], "Hay que conocer qué materiales sirven para cada uso."],
+    ["¿Por qué un problema técnico no se resuelve solo con papel y bolígrafo?", "Porque hay que construir algo", ["constru"], "La solución de un problema técnico es un objeto que hay que fabricar."],
+    ["Sabes usar herramientas y tienes materiales, pero no sabes nada del tema. ¿Qué te falta?", "Conocimientos", ["conocimiento"], "Sin conocimientos sobre el tema no sabrás qué construir."]
   ],
   proceso: [
-    ["Método ordenado para idear, diseñar y construir", "Proceso tecnológico", ["proceso tecnolog","metodo de proyecto"]],
-    ["Otro nombre del proceso tecnológico", "Método de proyectos", ["metodo de proyecto","proyecto"]],
-    ["Fase 1 del proceso tecnológico", "Planteamiento del problema", ["planteamiento","plantear"]],
-    ["Fase 2 del proceso tecnológico", "Diseño", ["diseno"]],
-    ["Fase 3 del proceso tecnológico", "Planificación", ["planifica"]],
-    ["Fase 4 del proceso tecnológico", "Construcción", ["constru"]],
-    ["Fase 5 del proceso tecnológico", "Evaluación", ["evalua"]],
-    ["Fase 6 del proceso tecnológico", "Presentación y comercialización", ["presenta","comercializ","difusi"]],
-    ["Fase en la que se fabrican y montan las piezas", "Construcción", ["constru"]],
-    ["Fase en la que se proponen soluciones y se elige la mejor", "Diseño", ["diseno"]],
-    ["Fase en la que se hace el presupuesto", "Planificación", ["planifica"]],
-    ["Fase en la que se comprueba si funciona", "Evaluación", ["evalua"]],
-    ["Diagrama de barras que organiza el tiempo de las tareas", "Diagrama de Gantt", ["gantt","gant"]],
-    ["Documento que recoge todo el proceso", "Memoria técnica", ["memoria"]],
-    ["Documentos 1 a 7 de la memoria técnica", "Anteproyecto", ["anteproyecto"]],
-    ["Venta por internet que se usa para comercializar", "E-commerce", ["commerce","comercio electronico"]],
-    ["Normas que hay que cumplir al construir en el taller", "Normas de seguridad", ["seguridad"]],
-    ["Hoja de la fase de planificación", "Hoja de procesos", ["hoja de procesos","procesos"]]
+    ["Antes de construir nada, ¿por qué hay que definir bien el problema?", "Para saber qué necesidad resolver", ["necesidad","saber","problema"], "Si no sabes bien qué necesitas, puedes construir algo que no sirve."],
+    ["El objeto terminado no funciona. ¿A qué fase hay que volver?", "Al diseño", ["diseno"], "En la evaluación, si hay errores, se revisan las fases anteriores desde el diseño."],
+    ["Quieres saber cuánto dinero costará el proyecto. ¿En qué fase lo calculas?", "Planificación", ["planifica"], "En la planificación se hace el presupuesto, antes de construir."],
+    ["Tienes tres ideas buenas y debes quedarte con una. ¿En qué fase estás?", "Diseño", ["diseno"], "En el diseño se proponen soluciones y se elige la mejor."],
+    ["¿Por qué se planifica ANTES de construir?", "Para no improvisar ni malgastar", ["improvis","malgast","orden","materiales","tiempo"], "Planificar evita errores, retrasos y gastos al construir."],
+    ["Quieres ver de un vistazo cuánto dura cada tarea del proyecto. ¿Qué usas?", "Diagrama de Gantt", ["gantt","gant"], "El Gantt muestra con barras la duración de cada tarea."],
+    ["Un equipo construye primero y piensa después. ¿Qué método no está siguiendo?", "El proceso tecnológico", ["proceso"], "El proceso tecnológico es un método ordenado, no improvisado."],
+    ["¿Qué tres cosas miras para elegir la mejor solución?", "Construcción, coste y sostenibilidad", ["coste","sostenib","constru"], "No basta con que guste: hay que poder fabricarla, que no sea cara y que cuide el planeta."],
+    ["Al construir te cortas por no usar guantes. ¿Qué no has cumplido?", "Las normas de seguridad", ["seguridad"], "En la construcción siempre hay que cumplir las normas de seguridad del taller."],
+    ["¿Dónde dejas por escrito todo lo que has hecho en el proyecto?", "En la memoria técnica", ["memoria"], "La memoria técnica recoge todo el proceso para que otros lo entiendan."],
+    ["Los bocetos y el presupuesto se hacen antes de construir. ¿En qué parte de la memoria van?", "Anteproyecto", ["anteproyecto"], "El anteproyecto (documentos 1 a 7) se hace antes de construir."],
+    ["Las conclusiones y propuestas de mejora, ¿antes o después de construir?", "Después", ["despues"], "Solo puedes sacar conclusiones cuando ya has construido y evaluado."]
   ],
   sost: [
-    ["Efecto que calienta el planeta por los gases", "Efecto invernadero", ["invernadero"]],
-    ["Capa de la atmósfera que se destruye", "Capa de ozono", ["ozono"]],
-    ["Destrucción de los bosques", "Deforestación", ["deforesta"]],
-    ["Energía que aprovecha el sol", "Energía solar", ["solar"]],
-    ["Energía que aprovecha el viento", "Energía eólica", ["eolica"]],
-    ["Energía que aprovecha restos orgánicos", "Biomasa", ["biomasa"]],
-    ["Transporte respetuoso de dos ruedas", "Bicicleta eléctrica", ["bici"]],
-    ["Proceso para aprovechar los residuos", "Reciclaje", ["recicla"]],
-    ["Lo que se contamina en ríos y mares", "El agua", ["agua"]],
-    ["Lo que se agota al usar demasiados recursos", "Recursos naturales", ["recurso"]],
-    ["Sistemas que vigilan cuánta energía gastamos", "Control del consumo energético", ["consumo","control"]],
-    ["Lo que a veces la sociedad desconoce de la tecnología", "Sus consecuencias", ["consecuencia"]],
-    ["¿La tecnología solo perjudica al medio ambiente?", "No, también ayuda", ["no"]]
+    ["Una fábrica expulsa mucho humo. ¿Qué problema ambiental empeora?", "Efecto invernadero", ["invernadero"], "Los gases contaminantes calientan el planeta."],
+    ["¿Por qué la energía solar es más limpia que el carbón?", "No expulsa gases al producirse", ["gas","humo","contamin"], "El sol no se quema: produce energía sin contaminar el aire."],
+    ["Si cortamos muchos árboles para fabricar productos, ¿qué ocurre?", "Deforestación", ["deforesta"], "Destruir bosques es una consecuencia del desarrollo tecnológico."],
+    ["¿Cómo ayuda el reciclaje a no agotar los recursos naturales?", "Se reutilizan los materiales", ["reutiliz","usar de nuevo","otra vez","material"], "Si reciclamos, no hace falta sacar tanta materia nueva de la naturaleza."],
+    ["¿Por qué una bici eléctrica cuida más el planeta que un coche de gasolina?", "Contamina menos", ["contamina menos","menos"], "No quema combustible ni expulsa gases contaminantes."],
+    ["¿La tecnología solo daña el medio ambiente?", "No, también ayuda a cuidarlo", ["no","ayuda"], "Crea soluciones como energías limpias o reciclaje."],
+    ["Un sistema apaga las luces que nadie usa. ¿Qué tipo de solución es?", "Control del consumo energético", ["consumo","energ"], "Ahorrar energía también reduce el impacto ambiental."],
+    ["Una energía que aprovecha restos de plantas es...", "Biomasa", ["biomasa"], "La biomasa usa restos orgánicos como fuente de energía."]
   ],
   obso: [
-    ["Obsolescencia por peores prestaciones que los modelos nuevos", "Funcional", ["funcional"]],
-    ["Obsolescencia por no cumplir las nuevas necesidades del mercado", "Tecnológica", ["tecnolog"]],
-    ["Obsolescencia diseñada para durar un tiempo concreto", "Programada", ["programada"]],
-    ["Producto de usar y tirar", "Desechable", ["desechable"]],
-    ["Producto que dura mucho tiempo", "Duradero", ["duradero"]],
-    ["Ejemplo típico de obsolescencia funcional", "El teléfono móvil", ["movil","telefono"]],
-    ["¿Qué fomenta la obsolescencia programada?", "Productos desechables", ["desechable","usar y tirar"]],
-    ["¿A qué obliga la obsolescencia programada?", "A comprar modelos nuevos", ["comprar","nuevo"]],
-    ["¿Se podrían fabricar productos más duraderos?", "Sí, técnicamente sí", ["si"]],
-    ["Producto que queda anticuado aunque todavía funciona", "Obsolescencia tecnológica", ["tecnolog"]],
-    ["Lo que queda mermado en la obsolescencia funcional", "Las prestaciones", ["prestaci"]],
-    ["Momento en que queda inservible un producto programado", "Al acabar su período", ["periodo","plazo","acabar","tiempo"]]
+    ["Tu móvil funciona, pero los nuevos hacen muchas más cosas. ¿Qué obsolescencia es?", "Funcional", ["funcional"], "Sus prestaciones han quedado por detrás de los modelos nuevos."],
+    ["Una impresora se estropea justo al acabar la garantía, como si estuviera preparada. ¿Qué obsolescencia es?", "Programada", ["programada"], "Se diseñó para durar un tiempo concreto."],
+    ["Un reproductor de DVD funciona, pero ya nadie usa DVD. ¿Qué obsolescencia es?", "Tecnológica", ["tecnolog"], "Ya no cumple lo que necesita el mercado, aunque todavía funcione."],
+    ["¿Por qué la obsolescencia programada perjudica al planeta?", "Genera más basura", ["basura","residu","desech","tirar"], "Obliga a tirar productos y comprar otros nuevos."],
+    ["¿A quién beneficia la obsolescencia programada?", "A los fabricantes", ["fabricante","empresa","vender"], "Venden más productos porque la gente tiene que comprar otro."],
+    ["Si un producto se podría hacer duradero, pero se hace para tirar, se fomenta un producto...", "Desechable", ["desechable"], "Es lo contrario de un producto duradero."],
+    ["¿Qué puedes hacer tú contra la obsolescencia programada?", "Reparar en vez de tirar", ["repar","arreglar"], "Reparar alarga la vida de los productos y genera menos residuos."]
   ],
   analisis: [
-    ["Análisis de la forma, medidas y piezas", "Anatómico", ["anatomic"]],
-    ["Análisis de cómo funciona y sus fallos", "Funcional", ["funcional"]],
-    ["Análisis de los materiales y la fabricación", "Técnico", ["tecnic"]],
-    ["Análisis del precio y la historia", "Socio-económico", ["socio","economic"]],
-    ["Dibujo de las piezas separadas", "Despiece", ["despiece"]],
-    ["Material del cuerpo del sacapuntas", "Aluminio", ["aluminio"]],
-    ["Material de la cuchilla del sacapuntas", "Acero", ["acero"]],
-    ["Número de piezas del sacapuntas", "Tres", ["tres","3"]],
-    ["Forma del sacapuntas", "De cuña", ["cuna"]],
-    ["Lo que se usaba antes del sacapuntas", "Una navaja", ["navaja"]],
-    ["Precio aproximado del sacapuntas", "1,50 €", ["1,5","1.5","1,50"]],
-    ["Piezas del sacapuntas", "Cuerpo, tornillo y cuchilla", ["cuerpo","tornillo","cuchilla"]],
-    ["Cómo se fabrica el cuerpo del sacapuntas", "Fundiendo el metal en un molde", ["molde","fundi"]],
-    ["Frase que se dice de los inventos", "Todo está inventado", ["inventado"]],
-    ["Lo que hacen los fabricantes con los modelos del mercado", "Analizarlos para mejorarlos", ["analiz","mejora"]]
+    ["Mides el sacapuntas y cuentas sus piezas. ¿Qué análisis haces?", "Anatómico", ["anatomic"], "El anatómico estudia forma, medidas y piezas."],
+    ["Te preguntas qué pasa si se afloja el tornillo. ¿Qué análisis es?", "Funcional", ["funcional"], "El funcional estudia cómo funciona y qué fallos puede tener."],
+    ["Averiguas que la cuchilla es de acero y cómo se fabricó. ¿Qué análisis es?", "Técnico", ["tecnic"], "El técnico estudia materiales y fabricación."],
+    ["Comparas el precio actual del sacapuntas con lo que se usaba antes. ¿Qué análisis es?", "Socio-económico", ["socio","economic"], "Estudia el problema que resuelve, su historia y su precio."],
+    ["¿Por qué la cuchilla es de acero y no de aluminio?", "El acero es más duro y corta mejor", ["duro","corta","resist"], "La cuchilla necesita un material duro para cortar la madera del lápiz."],
+    ["¿Para qué analizan las empresas los objetos que ya existen?", "Para mejorarlos", ["mejora"], "Casi todo está inventado: los nuevos objetos mejoran los anteriores."],
+    ["Dibujas las piezas del objeto separadas y numeradas. ¿Cómo se llama ese dibujo?", "Despiece", ["despiece"], "El despiece forma parte del análisis anatómico."],
+    ["¿Qué problema resuelve el sacapuntas?", "Sacar punta a los lápices", ["punta"], "Antes se hacía con una navaja, que era más peligroso."]
   ],
   proyecto: [
-    ["Objeto a diseñar en el proyecto de ejemplo", "Soporte para mandos", ["soporte"]],
-    ["Problema del proyecto de ejemplo", "Mandos desordenados", ["desorden","ordenar"]],
-    ["Técnica de juntar ideas en grupo", "Tormenta de ideas", ["tormenta","brainstorm","lluvia"]],
-    ["Nombre en inglés de la tormenta de ideas", "Brainstorming", ["brainstorm"]],
-    ["Lugares de internet para buscar ideas", "Webs, foros y vídeos", ["web","foro","video"]],
-    ["Lo que permite evaluar todas las propuestas del equipo", "Puesta en común", ["puesta en comun","comun"]],
-    ["Cómo se debe plantear la necesidad", "De forma clara", ["clara"]],
-    ["Fuente: productos que resuelven algo...", "Parecido o similar", ["parecid","similar"]],
-    ["Criterios para elegir la solución", "Construcción, coste y sostenibilidad", ["coste","sostenib","constru"]],
-    ["Aparato del que son los mandos", "Videoconsola", ["consola"]],
-    ["Lo que hay que plantear junto con la necesidad", "Las condiciones", ["condicion"]]
+    ["¿Por qué es buena idea mirar productos parecidos antes de diseñar?", "Para coger ideas y mejorarlas", ["idea","mejor"], "Ver lo que ya existe ayuda a no empezar de cero."],
+    ["En una tormenta de ideas, ¿se critican las ideas mientras se dicen?", "No, primero se apuntan todas", ["no"], "Primero se recogen muchas ideas; después se evalúan."],
+    ["El equipo no se pone de acuerdo con el diseño. ¿Qué hacen?", "Una puesta en común", ["puesta en comun","comun","votar","hablar"], "Se evalúan juntos las propuestas y se elige la más adecuada."],
+    ["Los mandos aparecen siempre tirados por el salón. ¿Qué necesidad hay?", "Mantenerlos ordenados", ["orden"], "Esa necesidad es el punto de partida del proyecto."],
+    ["¿Por qué hay que plantear el problema de forma clara?", "Para saber qué condiciones debe cumplir", ["condicion","saber","claro"], "Si el problema está claro, sabes qué tiene que hacer la solución."],
+    ["Busca información en webs, foros y vídeos. ¿De dónde la saca?", "De internet", ["internet"], "Internet es una de las fuentes de información del proyecto."]
+  ]
+});
+
+/* Frases clave para el modo chapar (leer y escribirla entera) */
+addFrases("tecnologia", {
+  intro: [
+    "Los problemas técnicos tienen varias soluciones y se resuelven construyendo algo.",
+    "Los problemas matemáticos tienen una única solución.",
+    "Para resolver un problema tecnológico hacen falta conocimientos, herramientas y materiales."
+  ],
+  proceso: [
+    "El proceso tecnológico es un método ordenado para idear, diseñar y construir un producto.",
+    "Las fases son planteamiento, diseño, planificación, construcción, evaluación y presentación.",
+    "En el diseño se elige la mejor solución según construcción, coste y sostenibilidad.",
+    "En la planificación se eligen materiales y herramientas y se hace el presupuesto.",
+    "Si el objeto no funciona, se revisan las fases anteriores desde el diseño.",
+    "La memoria técnica recoge todo lo que se hace durante el proceso."
+  ],
+  sost: [
+    "La tecnología puede causar efecto invernadero, destruir la capa de ozono y contaminar el agua.",
+    "Las energías solar, eólica y biomasa son más respetuosas con el medio ambiente.",
+    "El reciclaje y los coches eléctricos ayudan a reducir el impacto ambiental."
+  ],
+  obso: [
+    "La obsolescencia funcional ocurre cuando un producto tiene peores prestaciones que los nuevos.",
+    "La obsolescencia tecnológica ocurre cuando un producto no cumple las nuevas necesidades del mercado.",
+    "La obsolescencia programada diseña productos para durar un tiempo concreto."
+  ],
+  analisis: [
+    "El análisis anatómico estudia la forma, las medidas y las piezas de un objeto.",
+    "El análisis funcional estudia cómo funciona y qué fallos puede tener.",
+    "El análisis técnico estudia los materiales y cómo se fabricó.",
+    "El análisis socio-económico estudia el problema que resuelve, su historia y su precio."
+  ],
+  proyecto: [
+    "Primero se plantea la necesidad de forma clara.",
+    "Para buscar ideas se usan productos parecidos, internet y la tormenta de ideas.",
+    "La puesta en común sirve para evaluar las propuestas y elegir la mejor."
   ]
 });
