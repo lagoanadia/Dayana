@@ -401,7 +401,7 @@ function confirmBox(title, text, ok, fn){
 const GAME_INFO = {
   order:{icon:'🧩', name:'Ordena'}, match:{icon:'🔗', name:'Une parejas'}, classify:{icon:'🗂️', name:'Clasifica'},
   tf:{icon:'✅', name:'Verdadero o falso'}, hangman:{icon:'🔤', name:'Palabra oculta'}, pick:{icon:'🫧', name:'Caza burbujas'}, memory:{icon:'🃏', name:'Memoria'},
-  clock:{icon:'🕒', name:'El reloj'}, fill:{icon:'✏️', name:'Completa la frase'}, scramble:{icon:'🔀', name:'Ordena la frase'}, odd:{icon:'🕵️', name:'¿Cuál sobra?'}
+  clock:{icon:'🕒', name:'El reloj'}, mohs:{icon:'💎', name:'Escala de Mohs'}, fill:{icon:'✏️', name:'Completa la frase'}, scramble:{icon:'🔀', name:'Ordena la frase'}, odd:{icon:'🕵️', name:'¿Cuál sobra?'}
 };
 function viewTema(s, i){
   const p = prog(s.id), sec = s.sections[i];
@@ -725,7 +725,7 @@ function runGame(s, g, ctx){
       retry: () => route(), back}), 450);
   };
   g = vary(s, g, ctx);
-  const G = {order:gOrder, match:gMatch, classify:gClassify, tf:gTF, hangman:gHangman, pick:gPick, memory:gMemory, clock:gClock, fill:gFill, scramble:gScramble, odd:gOdd}[g.type];
+  const G = {order:gOrder, match:gMatch, classify:gClassify, tf:gTF, hangman:gHangman, pick:gPick, memory:gMemory, clock:gClock, mohs:gMohs, fill:gFill, scramble:gScramble, odd:gOdd}[g.type];
   G(g, {alive: () => RID === myRID, hud, miss, hit, finish, get errors(){ return errors; }, body: $('#gbody')});
 }
 
@@ -949,6 +949,62 @@ function gClock(g, X){
   show();
 }
 
+/* ---------- Escala de Mohs: quen raia a quen ----------
+   Regra: un mineral raia a todos os que teñen MENOS dureza ca el. */
+const MOHS = ['Talco','Xeso','Calcita','Fluorita','Apatito','Ortosa','Cuarzo','Topacio','Corindón','Diamante'];
+function gMohs(g, X){
+  const N = 8; let n = 0, lock = false;
+  const types = shuffle(['raia','raia','raiado','raiado','sino','sino','sino','raia']);
+  const hud = () => X.hud(`<span class="chip">💎 ${n+1} / ${N}</span>`);
+  const name = k => MOHS[k] + ' (' + (k+1) + ')';
+  function show(){
+    if(!X.alive()) return;
+    hud();
+    const t = types[n];
+    if(t === 'sino'){
+      let a = Math.floor(Math.random()*10), b = Math.floor(Math.random()*10);
+      while(b === a) b = Math.floor(Math.random()*10);
+      const yes = a > b;
+      X.body.innerHTML = `<p class="prompt">Responde:</p><div class="tf-card">O ${MOHS[a].toLowerCase()} raia ${['Xeso','Calcita','Fluorita','Ortosa','Topacio'].includes(MOHS[b]) ? 'a' : 'o'} ${MOHS[b].toLowerCase()}?</div>
+        <div class="tf-btns"><button class="btn green" id="mY">👍 Si</button><button class="btn red" id="mN">👎 Non</button></div><div id="mfb" style="margin-top:12px"></div>`;
+      const why = `${name(a)} ${yes ? '>' : '<'} ${name(b)}: ${yes ? 'é máis duro, así que si o raia.' : 'é máis brando, así que non o pode raiar.'}`;
+      const ans = (v, el) => { if(lock) return; lock = true; done(v === yes, why, el); };
+      $('#mY').onclick = e => ans(true, e.target); $('#mN').onclick = e => ans(false, e.target);
+      return;
+    }
+    // Elixe todos: os que raia (menos duros) ou os que o raian (máis duros)
+    const k = t === 'raia' ? 2 + Math.floor(Math.random()*7) : 1 + Math.floor(Math.random()*7);
+    const correct = new Set(MOHS.map((_,i) => i).filter(i => t === 'raia' ? i < k : i > k));
+    const sel = new Set();
+    X.body.innerHTML = `<p class="prompt">${t === 'raia' ? `Que minerais raia o <u>${MOHS[k].toLowerCase()}</u>?` : `Que minerais poden raiar o <u>${MOHS[k].toLowerCase()}</u>?`}</p>
+      <p class="muted" style="margin:0 0 8px">Toca todos os que sexan e pulsa Comprobar.</p>
+      <div class="pool" id="mp"></div><button class="btn block" id="mok" style="margin-top:14px">Comprobar</button><div id="mfb" style="margin-top:12px"></div>`;
+    shuffle(MOHS.map((m,i) => i).filter(i => i !== k)).forEach(i => {
+      const b = document.createElement('button'); b.className = 'tile'; b.textContent = MOHS[i]; b.dataset.i = i;
+      b.onclick = () => { if(lock) return; sel.has(i) ? sel.delete(i) : sel.add(i); b.classList.toggle('sel'); sfx('tap'); };
+      $('#mp').appendChild(b);
+    });
+    $('#mok').onclick = () => {
+      if(lock) return; lock = true;
+      document.querySelectorAll('#mp .tile').forEach(b => { const i = +b.dataset.i; b.classList.remove('sel'); if(correct.has(i)) b.classList.add('ok'); else if(sel.has(i)) b.classList.add('bad'); });
+      const ok = correct.size === sel.size && [...sel].every(i => correct.has(i));
+      const why = t === 'raia'
+        ? `O ${name(k).toLowerCase()} raia a todos os que teñen dureza menor ca ${k+1}: ${[...correct].map(i => MOHS[i]).join(', ')}.`
+        : `Raian o ${name(k).toLowerCase()} os que teñen dureza maior ca ${k+1}: ${[...correct].map(i => MOHS[i]).join(', ')}.`;
+      done(ok, why, $('#mok'));
+    };
+  }
+  function done(ok, why, el){
+    const fb = document.createElement('div');
+    if(ok){ X.hit(); fb.className = 'feedback ok'; fb.textContent = '✓ ¡Ben! ' + why; }
+    else { X.miss(el); hud(); fb.className = 'feedback no'; fb.textContent = '✗ ' + why; }
+    $('#mfb').appendChild(fb);
+    if($('#mok')) $('#mok').remove();
+    setTimeout(() => { lock = false; n++; n >= N ? X.finish() : show(); }, ok ? 1600 : 3500);
+  }
+  show();
+}
+
 /* ---------- Nuevos juegos ---------- */
 const STOP = new Set('a o os as e de do da dos das en no na nos nas un unha uns unhas el la los las y del al con por para que se su sus es son ou o lo como cando máis mais más pola polo entre sobre ten teñen hay hai ao á'.split(' '));
 const cleanW = w => w.replace(/[.,;:¿?¡!()]/g, '');
@@ -1052,13 +1108,42 @@ function runChapar(s, idxs){
   const all = idxs.flatMap(i => (s.sections[i].frases || []).map(f => ({f, i})));
   const back = idxs.length === 1 ? `#/s/${s.id}/t/${idxs[0]}` : `#/s/${s.id}`;
   if(!all.length){ toast('Este tema aún no tiene frases'); return go(back); }
-  const list = pickFresh(s.id + ':chapar:' + idxs.join(','), all, Math.min(5, all.length), x => x.f);
+  let list = [];
   const myRID = RID;
   let n = 0, scores = [], xp = 0, hints = 0;
   page(`<button class="back" data-go="${back}">← Salir</button>
     <div class="qtop"><div class="eyebrow">✍️ Modo chapar</div><span class="chip" id="cc"></span></div>
     <div class="qbar"><div id="cbar" style="width:0%"></div></div>
     <div class="qcard" id="cbox"></div>`);
+  /* Paso 0: ella elige qué frases quiere chapar */
+  function choose(){
+    const sel = new Set();
+    $('#cc').textContent = all.length + ' frases';
+    const groups = idxs.filter(i => (s.sections[i].frases||[]).length).map(i => `
+      ${idxs.length > 1 ? `<div class="eyebrow" style="margin:14px 0 6px">${esc(s.sections[i].title)}</div>` : ''}
+      ${all.map((x,k) => x.i === i ? `<button class="mission" data-k="${k}" style="margin-top:8px;box-shadow:none"><div class="ic" style="background:var(--line);width:34px;height:34px;font-size:16px;border-radius:10px" data-mark>☐</div><div class="s" style="color:var(--ink);font-size:14.5px;font-weight:700">${esc(x.f)}</div></button>` : '').join('')}`).join('');
+    $('#cbox').innerHTML = `<div class="eyebrow" style="color:var(--purple)">¿Qué quieres chapar?</div>
+      <p class="muted" style="margin:6px 0 10px">Toca las frases que quieras practicar, o deja que la app elija.</p>
+      <div class="row"><button class="btn small ghost" id="cAll">✅ Todas</button><button class="btn small ghost" id="cNone">↩️ Ninguna</button></div>
+      <div id="clist">${groups}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;position:sticky;bottom:0;background:var(--card);padding:12px 0 calc(8px + env(safe-area-inset-bottom,0px))">
+        <button class="btn purple" id="cStart" disabled>Empezar</button>
+        <button class="btn ghost" id="cRand">🎲 Elige tú 5 al azar</button></div>`;
+    const paint = () => {
+      document.querySelectorAll('#clist .mission').forEach(b => {
+        const on = sel.has(+b.dataset.k);
+        b.classList.toggle('done', on); b.querySelector('[data-mark]').textContent = on ? '✅' : '☐';
+      });
+      $('#cStart').disabled = !sel.size;
+      $('#cStart').textContent = sel.size ? 'Empezar con ' + sel.size + (sel.size === 1 ? ' frase' : ' frases') + ' →' : 'Elige al menos una frase';
+    };
+    document.querySelectorAll('#clist .mission').forEach(b => b.onclick = () => { const k = +b.dataset.k; sel.has(k) ? sel.delete(k) : sel.add(k); sfx('tap'); paint(); });
+    $('#cAll').onclick = () => { all.forEach((_,k) => sel.add(k)); paint(); };
+    $('#cNone').onclick = () => { sel.clear(); paint(); };
+    $('#cStart').onclick = () => { list = shuffle([...sel].map(k => all[k])); n = 0; read(); };
+    $('#cRand').onclick = () => { list = pickFresh(s.id + ':chapar:' + idxs.join(','), all, Math.min(5, all.length), x => x.f); n = 0; read(); };
+    paint();
+  }
   function read(){
     if(RID !== myRID) return;
     const it = list[n]; hints = 0;
@@ -1120,7 +1205,7 @@ function runChapar(s, idxs){
       big: avg + '%', sub: 'de las frases escritas bien', starsHtml: starsTxt(stars, 3), xp,
       msg: stars === 3 ? '¡Chapada! 📚' : 'Con un 90% o más consigues 3 estrellas', retry: () => route(), back});
   }
-  read();
+  choose();
 }
 
 /* Cada partida coge otro trozo del banco: mezcla los datos del juego con el banco

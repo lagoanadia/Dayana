@@ -247,6 +247,7 @@ registerSubject({
     ],
     games:[
       {type:"order", title:"Escala de Mohs", prompt:"Ordena do máis brando (1) ao máis duro (10)", items:["Talco","Xeso","Calcita","Fluorita","Apatito","Ortosa","Cuarzo","Topacio","Corindón","Diamante"]},
+      {type:"mohs", title:"Quen raia a quen?"},
       {type:"match", title:"Brillo e cor", pairs:[["Metálico","Pirita"],["Vítreo","Cuarzo"],["Anacarado","Mica"],["Sedoso","Xeso"],["Amarelo","Xofre"],["Verde","Malaquita"]]},
       {type:"classify", title:"Que propiedade é?", bins:["Aspecto","Raia","Rotura","Densidade","Dureza"], items:[["Cubo, octaedro, prisma",0],["Brillo metálico",0],["Cor do po ao raialo",1],["Raia negra da pirita",1],["Fractura concoidea",2],["Exfoliación da mica",2],["Masa / volume",3],["A calcopirita pesa máis ca caolinita",3],["Escala de Mohs",4],["Ráiase coa uña",4]]}
     ]
