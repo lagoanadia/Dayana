@@ -1,6 +1,7 @@
 /* POST /api/ask → Pío, el pollito asistente, responde dudas con Groq.
    Variables en Vercel: GROQ_API_KEY (obligatoria) y GROQ_MODEL (opcional). */
 const {redis} = require('./_lib/util');
+const GROQ_KEY = () => String(process.env.GROQ_API_KEY || '').trim().replace(/^["']|["']$/g, '');
 
 /* Modelo: si pones GROQ_MODEL en Vercel se usa ese. Si no, se pregunta a Groq
    qué modelos hay activos y se elige uno de chat (así no se rompe si retiran alguno). */
@@ -10,7 +11,7 @@ const PREFER = [/gpt-oss-120b/i, /gpt-oss/i, /kimi/i, /qwen/i, /llama-4/i, /mave
 async function pickModel(force){
   if(process.env.GROQ_MODEL && !force) return process.env.GROQ_MODEL;
   if(cachedModel && !force && Date.now() - cachedAt < 6 * 3600 * 1000) return cachedModel;
-  const r = await fetch('https://api.groq.com/openai/v1/models', {headers: {Authorization: 'Bearer ' + process.env.GROQ_API_KEY}});
+  const r = await fetch('https://api.groq.com/openai/v1/models', {headers: {Authorization: 'Bearer ' + GROQ_KEY()}});
   const j = await r.json();
   const ids = (j.data || []).filter(m => m.active !== false && !SKIP.test(m.id)).map(m => m.id);
   if(!ids.length) throw new Error('Groq no tiene modelos de chat disponibles');
@@ -35,7 +36,7 @@ Reglas:
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if(req.method !== 'POST') return res.status(405).end();
-  if(!process.env.GROQ_API_KEY) return res.status(500).json({error: 'Falta GROQ_API_KEY en Vercel'});
+  if(!GROQ_KEY()) return res.status(500).json({error: 'Falta GROQ_API_KEY en Vercel'});
   try{
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const question = String(body.question || '').slice(0, 600).trim();
@@ -63,7 +64,7 @@ module.exports = async (req, res) => {
         ];
     const call = model => fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {'Authorization': 'Bearer ' + process.env.GROQ_API_KEY, 'Content-Type': 'application/json'},
+      headers: {'Authorization': 'Bearer ' + GROQ_KEY(), 'Content-Type': 'application/json'},
       body: JSON.stringify({model, temperature: 0.4, max_tokens: 900, messages})
     }).then(async r => ({ok: r.ok, j: await r.json()}));
     let out = await call(await pickModel());
