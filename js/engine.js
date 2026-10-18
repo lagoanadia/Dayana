@@ -381,7 +381,7 @@ function viewMap(s){
     <button class="mission" data-go="#/s/${s.id}/fallos" ${missN ? '' : 'disabled style="opacity:.6"'}><div class="ic" style="background:var(--red)">🩹</div>
       <div><div class="t">Caja de fallos</div><div class="s">${missN ? 'Tienes ' + missN + ' preguntas falladas por repasar' : 'Aquí irán las preguntas que falles'}</div></div><div class="st">${missN ? '▶' : ''}</div></button>
     <button class="mission" data-go="#/s/${s.id}/chapar"><div class="ic" style="background:var(--purple)">✍️</div>
-      <div><div class="t">Chapar todo</div><div class="s">Frases clave de todos los temas para escribir de memoria</div></div><div class="st">▶</div></button>
+      <div><div class="t">Chapar todo</div><div class="s">Elige partes de la teoría de cualquier tema y escríbelas de memoria</div></div><div class="st">▶</div></button>
     <button class="mission" id="lapBtn"><div class="ic" style="background:var(--teal)">🔁</div>
       <div><div class="t">Nueva vuelta</div><div class="s">Vuelve a empezar el mundo para repasar todo. Mantienes tu XP, nivel y logros.</div></div></button>`);
   $('#lapBtn').onclick = () => confirmBox('¿Empezar una nueva vuelta?', 'Las estrellas de ' + s.name + ' vuelven a 0 para que lo repases todo otra vez. Tu XP, nivel y logros se quedan. Ganarás estrellas (y XP) de nuevo.', 'Sí, ¡otra vuelta!', () => {
@@ -401,7 +401,7 @@ function confirmBox(title, text, ok, fn){
 const GAME_INFO = {
   order:{icon:'🧩', name:'Ordena'}, match:{icon:'🔗', name:'Une parejas'}, classify:{icon:'🗂️', name:'Clasifica'},
   tf:{icon:'✅', name:'Verdadero o falso'}, hangman:{icon:'🔤', name:'Palabra oculta'}, pick:{icon:'🫧', name:'Caza burbujas'}, memory:{icon:'🃏', name:'Memoria'},
-  clock:{icon:'🕒', name:'El reloj'}, mohs:{icon:'💎', name:'Escala de Mohs'}, fill:{icon:'✏️', name:'Completa la frase'}, scramble:{icon:'🔀', name:'Ordena la frase'}, odd:{icon:'🕵️', name:'¿Cuál sobra?'}
+  clock:{icon:'🕒', name:'El reloj'}, specimen:{icon:'📷', name:'Foto, nome e categoría'}, photosort:{icon:'🗃️', name:'Clasifica as fotos'}, mohs:{icon:'💎', name:'Escala de Mohs'}, fill:{icon:'✏️', name:'Completa la frase'}, scramble:{icon:'🔀', name:'Ordena la frase'}, odd:{icon:'🕵️', name:'¿Cuál sobra?'}
 };
 function viewTema(s, i){
   const p = prog(s.id), sec = s.sections[i];
@@ -421,8 +421,8 @@ function viewTema(s, i){
       <div><div class="t">Test fácil</div><div class="s">Elige la respuesta${e ? ' · mejor: ' + e.best + '/' + e.total : ''}</div></div><div class="st">${e && e.best>=Math.ceil(e.total/2)?'⭐':'☆'}</div></button>
     <button class="mission ${h && h.best>=Math.ceil(h.total/2)?'done':''}" data-go="#/s/${s.id}/t/${i}/dificil"><div class="ic" style="background:var(--red)">🔴</div>
       <div><div class="t">Test difícil</div><div class="s">Escribe la respuesta${h ? ' · mejor: ' + h.best + '/' + h.total : ''}</div></div><div class="st">${h && h.best>=Math.ceil(h.total/2)?'⭐':'☆'}</div></button>
-    ${(sec.frases||[]).length ? `<button class="mission ${(p.chapar[sec.id]||{}).stars===3?'done':''}" data-go="#/s/${s.id}/t/${i}/chapar"><div class="ic" style="background:var(--purple)">✍️</div>
-      <div><div class="t">Modo chapar</div><div class="s">Lee la frase y escríbela entera de memoria${(p.chapar[sec.id]||{}).best ? ' · mejor: ' + p.chapar[sec.id].best + '%' : ''}</div></div><div class="st">${starsTxt((p.chapar[sec.id]||{}).stars||0,3)}</div></button>` : ''}
+    ${true ? `<button class="mission ${(p.chapar[sec.id]||{}).stars===3?'done':''}" data-go="#/s/${s.id}/t/${i}/chapar"><div class="ic" style="background:var(--purple)">✍️</div>
+      <div><div class="t">Modo chapar</div><div class="s">La teoría, palabra por palabra de memoria${(p.chapar[sec.id]||{}).best ? ' · mejor: ' + p.chapar[sec.id].best + '%' : ''}</div></div><div class="st">${starsTxt((p.chapar[sec.id]||{}).stars||0,3)}</div></button>` : ''}
     <div class="sect-title">Minijuegos</div>
     ${allGames(s, i).map((g,k) => {
       const r = p.games[sec.id+':'+k] || {};
@@ -725,7 +725,7 @@ function runGame(s, g, ctx){
       retry: () => route(), back}), 450);
   };
   g = vary(s, g, ctx);
-  const G = {order:gOrder, match:gMatch, classify:gClassify, tf:gTF, hangman:gHangman, pick:gPick, memory:gMemory, clock:gClock, mohs:gMohs, fill:gFill, scramble:gScramble, odd:gOdd}[g.type];
+  const G = {order:gOrder, match:gMatch, classify:gClassify, tf:gTF, hangman:gHangman, pick:gPick, memory:gMemory, clock:gClock, specimen:gSpecimen, photosort:gPhotosort, mohs:gMohs, fill:gFill, scramble:gScramble, odd:gOdd}[g.type];
   G(g, {alive: () => RID === myRID, hud, miss, hit, finish, get errors(){ return errors; }, body: $('#gbody')});
 }
 
@@ -855,7 +855,9 @@ function gMemory(g, X){
   hud();
   const btns = cards.map(c => {
     const b = document.createElement('button'); b.className = 'mcard up';
-    b.innerHTML = `<div class="in"><div class="f">❓</div><div class="b"></div></div>`; b.querySelector('.b').textContent = c.t;
+    b.innerHTML = `<div class="in"><div class="f">❓</div><div class="b"></div></div>`;
+    if(c.t.startsWith('img:')){ const im = document.createElement('img'); im.src = c.t.slice(4); im.alt = ''; im.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px'; b.querySelector('.b').style.padding = '0'; b.querySelector('.b').appendChild(im); }
+    else b.querySelector('.b').textContent = c.t;
     b.onclick = () => {
       if(lock || b.classList.contains('up')) return;
       b.classList.add('up'); sfx('tap'); open.push([b,c]);
@@ -1005,6 +1007,78 @@ function gMohs(g, X){
   show();
 }
 
+/* ---------- Fotos de minerais e rochas ---------- */
+function specPick(key, n){ return pickFresh(key, SPECIMENS, n, x => x[0]); }
+function specPhoto(x){ return specImg(x[0], 1 + Math.floor(Math.random() * (x[4] || 1))); }
+/* 1) Ves a foto → eliges o nome → eliges a categoría */
+function gSpecimen(g, X){
+  const list = specPick('spec:nome', 8);
+  let n = 0, lock = false;
+  const hud = () => X.hud(`<span class="chip">📷 ${n+1} / ${list.length}</span>`);
+  function show(){
+    if(!X.alive()) return;
+    hud();
+    const x = list[n];
+    // distractores do mesmo grupo grande (máis difícil e máis útil)
+    const same = SPECIMENS.filter(y => y !== x && SPEC_BIG(y[2]) === SPEC_BIG(x[2]));
+    const other = SPECIMENS.filter(y => y !== x && SPEC_BIG(y[2]) !== SPEC_BIG(x[2]));
+    const names = shuffle([x, ...shuffle(same).slice(0, 2), ...shuffle(other).slice(0, 1)]);
+    X.body.innerHTML = `<div class="spec-photo"><img src="${specPhoto(x)}" alt="Foto dun mineral ou rocha"></div>
+      <p class="prompt" id="sq">1. Como se chama?</p><div class="pool" id="so"></div><div id="sfb" style="margin-top:10px"></div>`;
+    names.forEach(y => {
+      const b = document.createElement('button'); b.className = 'tile'; b.textContent = y[1];
+      b.onclick = () => {
+        if(lock) return;
+        if(y === x){ b.classList.add('ok'); X.hit(); lock = true; setTimeout(() => { lock = false; askCat(x); }, 600); }
+        else { X.miss(b); hud(); }
+      };
+      $('#so').appendChild(b);
+    });
+  }
+  function askCat(x){
+    $('#sq').textContent = '2. ' + x[1].split(' (')[0] + ' é...';
+    const cats = shuffle([x[2], ...shuffle(SPEC_CATS.filter(c => c !== x[2])).slice(0, 3)]);
+    $('#so').innerHTML = '';
+    cats.forEach(c => {
+      const b = document.createElement('button'); b.className = 'tile'; b.textContent = c;
+      b.onclick = () => {
+        if(lock) return; lock = true;
+        const fb = document.createElement('div');
+        if(c === x[2]){ b.classList.add('ok'); X.hit(); fb.className = 'feedback ok'; fb.textContent = '✓ ' + x[1] + ': ' + x[2].toLowerCase() + '. ' + x[3] + '.'; }
+        else { X.miss(b); hud(); fb.className = 'feedback no'; fb.textContent = '✗ ' + x[1] + ' é ' + x[2].toLowerCase() + '. ' + x[3] + '.'; }
+        $('#sfb').appendChild(fb);
+        setTimeout(() => { lock = false; n++; n >= list.length ? X.finish() : show(); }, c === x[2] ? 1800 : 3400);
+      };
+      $('#so').appendChild(b);
+    });
+  }
+  show();
+}
+/* 2) Clasifica a foto no seu grupo, rápido */
+function gPhotosort(g, X){
+  const list = specPick('spec:sort', 10);
+  const bins = ['Mineral','Magmática','Metamórfica','Sedimentaria'];
+  let n = 0, lock = false;
+  X.body.innerHTML = `<p class="prompt">A que grupo pertence?</p><div class="spec-photo" id="pp"></div><div class="bins c2" id="pb"></div><div id="pfb" style="margin-top:10px"></div>`;
+  bins.forEach((t,k) => {
+    const b = document.createElement('button'); b.className = 'bin'; b.textContent = ['💎 ','🌋 ','🔥 ','🏖️ '][k] + t;
+    b.style.background = COLORS[(k+1)%6]; b.style.boxShadow = '0 5px 0 ' + COLORS_D[(k+1)%6];
+    b.onclick = () => answer(t);
+    $('#pb').appendChild(b);
+  });
+  function show(){ if(!X.alive()) return; X.hud(`<span class="chip">🗃️ ${n+1} / ${list.length}</span>`); $('#pp').innerHTML = `<img src="${specPhoto(list[n])}" alt="">`; $('#pfb').innerHTML = ''; }
+  function answer(t){
+    if(lock) return; lock = true;
+    const x = list[n], ok = SPEC_BIG(x[2]) === t;
+    const fb = document.createElement('div'); fb.className = 'feedback ' + (ok ? 'ok' : 'no');
+    fb.textContent = (ok ? '✓ ' : '✗ ') + x[1] + ': ' + x[2].toLowerCase() + '.';
+    if(ok) X.hit(); else { X.miss($('#pp')); X.hud(`<span class="chip">🗃️ ${n+1} / ${list.length}</span>`); }
+    $('#pfb').appendChild(fb);
+    setTimeout(() => { lock = false; n++; n >= list.length ? X.finish() : show(); }, ok ? 1100 : 2500);
+  }
+  show();
+}
+
 /* ---------- Nuevos juegos ---------- */
 const STOP = new Set('a o os as e de do da dos das en no na nos nas un unha uns unhas el la los las y del al con por para que se su sus es son ou o lo como cando máis mais más pola polo entre sobre ten teñen hay hai ao á'.split(' '));
 const cleanW = w => w.replace(/[.,;:¿?¡!()]/g, '');
@@ -1103,107 +1177,126 @@ function compareText(target, typed){
   const pct = A.length ? Math.max(0, Math.round((okIdx.size - extra * 0.5) / A.length * 100)) : 0;
   return {pct: Math.min(100, pct), okIdx};
 }
+/* La teoría de un tema convertida en bloques para chapar (igual que en «Teoría») */
+function theoryBlocks(sec){
+  const d = document.createElement('div'); d.innerHTML = sec.body;
+  return [...d.querySelectorAll('.card')].filter(c => !c.classList.contains('gallery')).map(c => {
+    const h = c.querySelector('h3'); const title = h ? h.textContent.replace(/^\s*[\d★📷]+/, '').trim() : sec.title;
+    const lines = [...c.querySelectorAll('p, li, .phase-row, .analysis-card')]
+      .filter(el => !el.parentElement.closest('li, .phase-row, .analysis-card'))
+      .map(el => el.textContent.replace(/\s+/g, ' ').trim()).filter(t => t.length > 2);
+    return {title, html: c.outerHTML, lines, sec: sec.title};
+  }).filter(b => b.lines.length);
+}
+const tokKey = t => norm(t).replace(/[^\p{L}\p{N}']/gu, '');
+/* Modo chapar: elige que bloques da teoría quere chapar, léeos e escríbeos PALABRA POR PALABRA */
 function runChapar(s, idxs){
   const p = prog(s.id);
-  const all = idxs.flatMap(i => (s.sections[i].frases || []).map(f => ({f, i})));
   const back = idxs.length === 1 ? `#/s/${s.id}/t/${idxs[0]}` : `#/s/${s.id}`;
-  if(!all.length){ toast('Este tema aún no tiene frases'); return go(back); }
-  let list = [];
+  const blocks = idxs.flatMap(i => theoryBlocks(s.sections[i]).map(b => Object.assign(b, {i})));
+  if(!blocks.length){ toast('Este tema aún no tiene teoría'); return go(back); }
   const myRID = RID;
-  let n = 0, scores = [], xp = 0, hints = 0;
+  let list = [], bi = 0, li = 0, words = [], wi = 0, tries = 0, okFirst = 0, total = 0, xp = 0;
   page(`<button class="back" data-go="${back}">← Salir</button>
     <div class="qtop"><div class="eyebrow">✍️ Modo chapar</div><span class="chip" id="cc"></span></div>
     <div class="qbar"><div id="cbar" style="width:0%"></div></div>
-    <div class="qcard" id="cbox"></div>`);
-  /* Paso 0: ella elige qué frases quiere chapar */
+    <div id="cbox"></div>`);
+
   function choose(){
     const sel = new Set();
-    $('#cc').textContent = all.length + ' frases';
-    const groups = idxs.filter(i => (s.sections[i].frases||[]).length).map(i => `
-      ${idxs.length > 1 ? `<div class="eyebrow" style="margin:14px 0 6px">${esc(s.sections[i].title)}</div>` : ''}
-      ${all.map((x,k) => x.i === i ? `<button class="mission" data-k="${k}" style="margin-top:8px;box-shadow:none"><div class="ic" style="background:var(--line);width:34px;height:34px;font-size:16px;border-radius:10px" data-mark>☐</div><div class="s" style="color:var(--ink);font-size:14.5px;font-weight:700">${esc(x.f)}</div></button>` : '').join('')}`).join('');
-    $('#cbox').innerHTML = `<div class="eyebrow" style="color:var(--purple)">¿Qué quieres chapar?</div>
-      <p class="muted" style="margin:6px 0 10px">Toca las frases que quieras practicar, o deja que la app elija.</p>
-      <div class="row"><button class="btn small ghost" id="cAll">✅ Todas</button><button class="btn small ghost" id="cNone">↩️ Ninguna</button></div>
-      <div id="clist">${groups}</div>
+    $('#cc').textContent = blocks.length + ' partes';
+    let last = null;
+    const items = blocks.map((b,k) => {
+      const head = idxs.length > 1 && b.i !== last ? `<div class="eyebrow" style="margin:16px 0 4px">${esc(s.sections[b.i].title)}</div>` : '';
+      last = b.i;
+      return head + `<button class="mission" data-k="${k}" style="margin-top:8px;box-shadow:none;align-items:flex-start"><div class="ic" style="background:var(--line);width:34px;height:34px;font-size:16px;border-radius:10px" data-mark>☐</div>
+        <div style="min-width:0"><div class="t">${esc(b.title)}</div><div class="s">${esc(b.lines.join(' ').slice(0, 110))}${b.lines.join(' ').length > 110 ? '…' : ''} · ${b.lines.join(' ').split(' ').length} palabras</div></div></button>`;
+    }).join('');
+    $('#cbox').innerHTML = `<div class="qcard"><div class="eyebrow" style="color:var(--purple)">¿Qué parte de la teoría quieres chapar?</div>
+      <p class="muted" style="margin:6px 0 10px">Es la misma teoría del tema. Primero la lees y después la escribes palabra por palabra.</p>
+      <div class="row"><button class="btn small ghost" id="cAll">✅ Todo</button><button class="btn small ghost" id="cNone">↩️ Nada</button></div>
+      <div id="clist">${items}</div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;position:sticky;bottom:0;background:var(--card);padding:12px 0 calc(8px + env(safe-area-inset-bottom,0px))">
-        <button class="btn purple" id="cStart" disabled>Empezar</button>
-        <button class="btn ghost" id="cRand">🎲 Elige tú 5 al azar</button></div>`;
+        <button class="btn purple" id="cStart" disabled>Empezar</button></div></div>`;
     const paint = () => {
-      document.querySelectorAll('#clist .mission').forEach(b => {
-        const on = sel.has(+b.dataset.k);
-        b.classList.toggle('done', on); b.querySelector('[data-mark]').textContent = on ? '✅' : '☐';
-      });
+      document.querySelectorAll('#clist .mission').forEach(b => { const on = sel.has(+b.dataset.k); b.classList.toggle('done', on); b.querySelector('[data-mark]').textContent = on ? '✅' : '☐'; });
       $('#cStart').disabled = !sel.size;
-      $('#cStart').textContent = sel.size ? 'Empezar con ' + sel.size + (sel.size === 1 ? ' frase' : ' frases') + ' →' : 'Elige al menos una frase';
+      $('#cStart').textContent = sel.size ? 'Empezar con ' + sel.size + (sel.size === 1 ? ' parte' : ' partes') + ' →' : 'Elige al menos una parte';
     };
     document.querySelectorAll('#clist .mission').forEach(b => b.onclick = () => { const k = +b.dataset.k; sel.has(k) ? sel.delete(k) : sel.add(k); sfx('tap'); paint(); });
-    $('#cAll').onclick = () => { all.forEach((_,k) => sel.add(k)); paint(); };
+    $('#cAll').onclick = () => { blocks.forEach((_,k) => sel.add(k)); paint(); };
     $('#cNone').onclick = () => { sel.clear(); paint(); };
-    $('#cStart').onclick = () => { list = shuffle([...sel].map(k => all[k])); n = 0; read(); };
-    $('#cRand').onclick = () => { list = pickFresh(s.id + ':chapar:' + idxs.join(','), all, Math.min(5, all.length), x => x.f); n = 0; read(); };
+    $('#cStart').onclick = () => { list = [...sel].sort((a,b) => a - b).map(k => blocks[k]); bi = 0; read(); };
     paint();
   }
+  /* 1. Ler o bloque tal como está na teoría */
   function read(){
     if(RID !== myRID) return;
-    const it = list[n]; hints = 0;
-    $('#cc').textContent = (n+1) + ' / ' + list.length;
-    $('#cbar').style.width = (n / list.length * 100) + '%';
-    $('#cbox').innerHTML = `<div class="eyebrow" style="color:var(--purple)">1. Lee y memoriza</div>
-      <div class="qtext" style="margin-top:10px;font-size:23px"></div>
-      <p class="muted" style="margin:0 0 14px">Léela en voz alta 2 o 3 veces. Cuando creas que te la sabes, tápala.</p>
-      <button class="btn purple block" id="cgo">🙈 Ya me la sé, tápala</button>`;
-    $('#cbox .qtext').textContent = it.f;
-    $('#cgo').onclick = write;
+    const b = list[bi];
+    $('#cc').textContent = (bi+1) + ' / ' + list.length;
+    $('#cbar').style.width = (bi / list.length * 100) + '%';
+    $('#cbox').innerHTML = `<div class="eyebrow" style="color:var(--purple);margin-top:6px">1. Léelo y memorízalo</div>${b.html}
+      <p class="muted" style="margin:12px 0">Léelo en voz alta 2 o 3 veces. Cuando creas que te lo sabes, tápalo.</p>
+      <button class="btn purple block" id="cgo">🙈 Ya me lo sé, tápalo</button>`;
+    window.scrollTo(0, 0);
+    $('#cgo').onclick = () => { li = 0; startLine(); };
   }
-  function write(){
-    const it = list[n];
-    const target = wordsOf(it.f);
-    $('#cbox').innerHTML = `<div class="eyebrow" style="color:var(--purple)">2. Escríbela entera de memoria</div>
-      <div class="hint" id="chint" hidden></div>
-      <textarea class="w-input" id="ctext" rows="4" autocapitalize="sentences" placeholder="Escribe la frase completa..." style="margin-top:12px;resize:vertical"></textarea>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <button class="btn ghost" id="chelp">💡 Pista</button><button class="btn" id="ccheck">Comprobar</button></div>`;
-    setTimeout(() => $('#ctext') && $('#ctext').focus(), 60);
-    $('#chelp').onclick = () => {
-      hints++;
-      const words = it.f.split(' ');
-      const shown = words.map((w,k) => hints >= 2 || k % 2 === 0 ? w[0] + '_'.repeat(Math.max(0, cleanW(w).length - 1)) + w.slice(cleanW(w).length) : '___').join(' ');
-      $('#chint').hidden = false; $('#chint').textContent = hints >= 3 ? it.f : shown;
-      if(hints >= 3) $('#chelp').disabled = true;
-      toast(hints >= 3 ? '👀 Te enseño la frase entera' : '💡 Pista: primeras letras');
-    };
-    $('#ccheck').onclick = () => {
-      const typed = $('#ctext').value;
-      if(!typed.trim()){ $('#ctext').focus(); return; }
-      const {pct, okIdx} = compareText(it.f, typed);
-      const words = it.f.split(' ');
-      const marked = words.map((w,k) => `<span style="padding:1px 4px;border-radius:6px;background:${okIdx.has(k) ? 'var(--good-soft)' : 'var(--bad-soft)'};color:${okIdx.has(k) ? 'var(--green-d)' : 'var(--red-d)'}">${esc(w)}</span>`).join(' ');
-      const good = pct >= 90;
-      scores.push(hints >= 3 ? Math.min(pct, 50) : pct);
-      if(good){ const g = (hints ? 10 : 20); xp += g; addXP(g); sfx('ok'); if(!hints) confetti(20); } else sfx('bad');
-      $('#cbox').innerHTML = `<div class="eyebrow" style="color:${good ? 'var(--green-d)' : 'var(--red-d)'}">${good ? '¡Muy bien!' : 'Casi…'} ${pct}% de la frase</div>
-        <p class="muted" style="margin:8px 0">En verde lo que pusiste bien, en rojo lo que te faltó:</p>
-        <div style="line-height:2;font-weight:800">${marked}</div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
-          ${good ? '' : '<button class="btn purple" id="cagain">🔁 Leerla otra vez y repetir</button>'}
-          <button class="btn ${good ? '' : 'ghost'}" id="cnext">${n + 1 < list.length ? 'Siguiente frase →' : 'Ver resultado 🎉'}</button></div>`;
-      if(!good) $('#cagain').onclick = () => { scores.pop(); read(); };
-      $('#cnext').onclick = () => { n++; n >= list.length ? finish() : read(); };
-    };
+  /* 2. Escribir cada frase palabra por palabra */
+  function startLine(){
+    const b = list[bi];
+    words = b.lines[li].split(' ').filter(Boolean); wi = 0; tries = 0;
+    $('#cbox').innerHTML = `<div class="qcard"><div class="eyebrow" style="color:var(--purple)">2. Escríbelo palabra por palabra · ${esc(b.title)} (${li+1}/${b.lines.length})</div>
+      <div id="cw" style="line-height:2.1;font-weight:800;font-size:17px;margin:12px 0"></div>
+      <input class="w-input" id="cin" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Escribe la siguiente palabra...">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn ghost" id="chelp">💡 Letra</button><button class="btn ghost" id="cshow">👀 Ver palabra</button></div>
+      <p class="muted" style="font-size:13px;margin:10px 0 0">Cuando la palabra esté bien, pasa sola a la siguiente. No hacen falta tildes ni mayúsculas.</p></div>`;
+    skipEmpty(); paintWords();
+    const inp = $('#cin'); setTimeout(() => inp.focus(), 60);
+    inp.addEventListener('input', () => {
+      const v = inp.value;
+      if(tokKey(v) && tokKey(v) === tokKey(words[wi])) return accept('ok');
+      if(/\s$/.test(v) && v.trim()){ wrong(); inp.value = ''; }
+    });
+    inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); if(inp.value.trim()){ wrong(); inp.value = ''; } } });
+    $('#chelp').onclick = () => { const w = cleanW(words[wi]); const have = inp.value.length; inp.value = w.slice(0, Math.min(w.length, Math.max(have, 0) + 1)); tries = Math.max(tries, 1); inp.focus(); inp.dispatchEvent(new Event('input')); };
+    $('#cshow').onclick = () => accept('shown');
+  }
+  function skipEmpty(){ while(wi < words.length && !tokKey(words[wi])){ words[wi] = {t: words[wi], st: 'auto'}; wi++; } }
+  function paintWords(){
+    $('#cw').innerHTML = words.map((w,k) => {
+      if(typeof w === 'object') return `<span style="padding:1px 5px;border-radius:7px;background:${w.st === 'ok' ? 'var(--good-soft)' : w.st === 'shown' ? 'var(--gold-soft)' : 'transparent'};color:${w.st === 'ok' ? 'var(--green-d)' : 'var(--ink)'}">${esc(w.t)}</span>`;
+      return `<span style="display:inline-block;min-width:${Math.min(8, 1 + cleanW(w).length) * 0.6}em;border-bottom:3px solid ${k === wi ? 'var(--purple)' : 'var(--line)'};margin:0 2px">&nbsp;</span>`;
+    }).join(' ');
+  }
+  function wrong(){
+    tries++; sfx('bad');
+    const c = $('#cin'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+    if(tries === 2) toast('💡 Empieza por «' + cleanW(words[wi]).slice(0, 2) + '…»');
+    if(tries >= 3) accept('shown');
+  }
+  function accept(st){
+    total++; if(st === 'ok' && tries === 0){ okFirst++; } else if(st === 'ok') okFirst += 0.5;
+    if(st === 'ok') sfx('tap');
+    words[wi] = {t: words[wi], st}; wi++; tries = 0; $('#cin').value = '';
+    skipEmpty(); paintWords();
+    if(wi >= words.length){
+      const b = list[bi]; li++;
+      if(li < b.lines.length){ sfx('ok'); setTimeout(startLine, 500); }
+      else { sfx('win'); const g = Math.round(b.lines.join(' ').split(' ').length / 3); xp += g; addXP(g); setTimeout(() => { bi++; bi >= list.length ? finish() : read(); }, 700); }
+    }
   }
   function finish(){
-    const avg = Math.round(scores.reduce((a,b) => a + b, 0) / scores.length);
-    const stars = avg >= 90 ? 3 : avg >= 70 ? 2 : 1;
+    const pct = total ? Math.round(okFirst / total * 100) : 0;
+    const stars = pct >= 95 ? 3 : pct >= 75 ? 2 : 1;
     if(idxs.length === 1){
       const id = s.sections[idxs[0]].id, prev = p.chapar[id] || {};
-      p.chapar[id] = {best: Math.max(prev.best || 0, avg), stars: Math.max(prev.stars || 0, stars)};
+      p.chapar[id] = {best: Math.max(prev.best || 0, pct), stars: Math.max(prev.stars || 0, stars)};
     }
     save(); countPlay();
     if(stars === 3){ confetti(70); sfx('win'); }
-    resultScreen({title: stars === 3 ? '¡Te lo sabes!' : stars === 2 ? '¡Muy bien!' : '¡Sigue practicando!', mood: stars === 3 ? 'happy' : 'ok',
-      big: avg + '%', sub: 'de las frases escritas bien', starsHtml: starsTxt(stars, 3), xp,
-      msg: stars === 3 ? '¡Chapada! 📚' : 'Con un 90% o más consigues 3 estrellas', retry: () => route(), back});
+    resultScreen({title: stars === 3 ? '¡Chapado!' : stars === 2 ? '¡Muy bien!' : '¡Sigue practicando!', mood: stars === 3 ? 'happy' : 'ok',
+      big: pct + '%', sub: 'de las palabras escritas sin ayuda', starsHtml: starsTxt(stars, 3), xp,
+      msg: stars === 3 ? 'Te lo sabes palabra por palabra 📚' : 'Con un 95% sin ayuda consigues 3 estrellas', retry: () => route(), back});
   }
   choose();
 }
@@ -1218,7 +1311,7 @@ function vary(s, g, ctx){
   const id = x => String(x[0]);
   g = Object.assign({}, g);
   if(g.type === 'match') g.pairs = pickFresh(key, g.pairs.concat(shortQA(qa, 45, 32).map(x => [x[1], x[0]])), 5, id);
-  if(g.type === 'memory') g.pairs = pickFresh(key, g.pairs.concat(shortQA(qa, 30, 22).map(x => [x[0], x[1]])), 6, id);
+  if(g.type === 'memory') g.pairs = pickFresh(key, g.pairs.concat(g.noqa ? [] : shortQA(qa, 30, 22).map(x => [x[0], x[1]])), 6, id);
   if(g.type === 'classify') g.items = pickFresh(key, g.items, 8, id);
   if(g.type === 'hangman'){
     // Solo términos clave: fuera números, verbos y palabras genéricas
