@@ -39,8 +39,8 @@ const SPEC_BIG = c => c.startsWith('Mineral') ? 'Mineral' : c.split(' ')[1].repl
   const s = SUBJECTS.find(x => x.id === 'bioloxia'); if(!s) return;
   const sec = s.sections.find(x => x.id === 'rochas'); if(!sec) return;
   const groups = [
-    ['Minerais non silicatos', c => c === 'Mineral non silicato'],
-    ['Minerais silicatos (con silicio)', c => c === 'Mineral silicato'],
+    ['Minerais non silicatos (sen silicio)', c => c === 'Mineral non silicato'],
+    ['Minerais silicatos (con silicio e osíxeno)', c => c === 'Mineral silicato'],
     ['Rochas magmáticas ou ígneas', c => c.includes('magmática')],
     ['Rochas metamórficas', c => c.includes('metamórfica')],
     ['Rochas sedimentarias', c => c.includes('sedimentaria')]

@@ -255,6 +255,12 @@ registerSubject({
   {
     id:"clasusos", title:"Clasificación e usos", icon:"⛏️",
     body:`
+    <div class="card example"><h3><span class="chip">?</span>Como diferenzo un silicato dun non silicato?</h3>
+      <p>A diferenza está no que levan <b>dentro</b> (a súa composición química), non na cor nin na forma.</p>
+      <ul><li><b>Silicatos</b>: levan <b>silicio (Si)</b> unido ao <b>osíxeno (O)</b>. Son os máis abundantes da codia e forman a maioría das rochas, como o granito (cuarzo, feldespato e mica).</li>
+      <li><b>Non silicatos</b>: <b>non levan silicio</b>. Están feitos doutros elementos: metais como ferro, cobre ou chumbo, xofre, carbono, sal...</li></ul>
+      <p><b>Truco para lembralos</b>: os silicatos do exame son só tres, <b>olivino, mica e cuarzo</b>. Calquera outro mineral do exame (pirita, galena, halita, calcita, xeso, fluorita...) é <b>non silicato</b>.</p>
+      <p><b>Pistas</b>: se ten <b>brillo metálico</b> (pirita, galena) ou <b>atrae o ferro</b> (magnetita), é un non silicato. Se se parece a un <b>cristal de vidro</b> e forma parte do granito ou da area, seguramente é un silicato (cuarzo).</p></div>
     <div class="card"><h3><span class="chip">1</span>Clasificación segundo a composición</h3>
       <ul><li><b>Silicatados</b> (silicatos): conteñen <b>silicio</b>. Son os máis abundantes na codia. Compostos por silicio e osíxeno. Ex.: olivino, cuarzo, ortosa, mica, talco, hornblenda.</li>
       <li><b>Non silicatados</b>: <b>non</b> conteñen silicio. Clasifícanse en <b>7 grupos</b>:</li></ul>

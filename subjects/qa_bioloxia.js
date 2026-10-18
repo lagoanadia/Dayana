@@ -73,6 +73,9 @@ addQA("bioloxia", {
   ],
   clasusos: [
     ["O cuarzo ten silicio e osíxeno. É silicato ou non silicato?", "Silicato", ["silicato"], "Os silicatos conteñen silicio."],
+    ["Que elemento ten que ter un mineral para ser silicato?", "Silicio", ["silicio"], "Os silicatos levan silicio unido ao osíxeno; os non silicatos non levan silicio."],
+    ["A galena ten brillo metálico e está feita de chumbo e xofre. É silicato?", "Non, é non silicato", ["non","no"], "Non leva silicio: é un sulfuro, un non silicato."],
+    ["Cales son os tres silicatos que entran no exame?", "Olivino, mica e cuarzo", ["olivino","mica","cuarzo"], "O resto de minerais do exame son non silicatos."],
     ["Por que os silicatos son tan importantes na codia?", "Son os máis abundantes", ["abundant"], "Son os minerais máis abundantes da codia terrestre."],
     ["Para facer cables eléctricos necesitamos cobre. De que mineral o sacamos?", "Calcopirita", ["calcopirita"], "A calcopirita é unha mena de cobre."],
     ["Para fabricar aceiro necesitamos ferro. De que minerais o sacamos?", "Magnetita e olixisto", ["magnetita","olixisto"], "Son menas de ferro."],

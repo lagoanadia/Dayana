@@ -1,7 +1,7 @@
 /* Service worker: la app funciona sin conexión.
    Sube VERSION cada vez que cambies archivos para que se actualice. */
-const VERSION = 'v13';
-const FILES = ['./', 'index.html', 'css/game.css', 'js/engine.js', 'js/config.js', 'js/cloud.js',
+const VERSION = 'v15';
+const FILES = ['./', 'index.html', 'css/game.css', 'js/engine.js', 'js/config.js', 'js/cloud.js', 'js/assistant.js',
   'subjects/tecnologia.js', 'subjects/bioloxia.js', 'subjects/ingles.js', 'subjects/qa_tecnologia.js', 'subjects/qa_bioloxia.js', 'subjects/minerais_fotos.js',
   'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES))); self.skipWaiting(); });
