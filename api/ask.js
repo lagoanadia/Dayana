@@ -2,7 +2,22 @@
    Variables en Vercel: GROQ_API_KEY (obligatoria) y GROQ_MODEL (opcional). */
 const {redis} = require('./_lib/util');
 
-const MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+/* Modelo: si pones GROQ_MODEL en Vercel se usa ese. Si no, se pregunta a Groq
+   qué modelos hay activos y se elige uno de chat (así no se rompe si retiran alguno). */
+let cachedModel = null, cachedAt = 0;
+const SKIP = /whisper|tts|guard|embed|speech|audio|vision-preview|distil|playai|orpheus|compound/i;
+const PREFER = [/gpt-oss-120b/i, /gpt-oss/i, /kimi/i, /qwen/i, /llama-4/i, /maverick|scout/i, /70b|120b|large/i];
+async function pickModel(force){
+  if(process.env.GROQ_MODEL && !force) return process.env.GROQ_MODEL;
+  if(cachedModel && !force && Date.now() - cachedAt < 6 * 3600 * 1000) return cachedModel;
+  const r = await fetch('https://api.groq.com/openai/v1/models', {headers: {Authorization: 'Bearer ' + process.env.GROQ_API_KEY}});
+  const j = await r.json();
+  const ids = (j.data || []).filter(m => m.active !== false && !SKIP.test(m.id)).map(m => m.id);
+  if(!ids.length) throw new Error('Groq no tiene modelos de chat disponibles');
+  cachedModel = PREFER.map(re => ids.find(id => re.test(id))).find(Boolean) || ids[0];
+  cachedAt = Date.now();
+  return cachedModel;
+}
 const LIMIT = 80;   // preguntas por día y por dispositivo/red
 
 const SYSTEM = `Eres Pío, un pollito amarillo con gafas, la mascota de la app "Estudiar Jugando".
@@ -41,21 +56,23 @@ module.exports = async (req, res) => {
       .filter(m => m && (m.role === 'user' || m.role === 'assistant'))
       .map(m => ({role: m.role, content: String(m.content || '').slice(0, 1200)}));
 
-    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {'Authorization': 'Bearer ' + process.env.GROQ_API_KEY, 'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: MODEL, temperature: 0.4, max_tokens: 600,
-        messages: [
+    const messages = [
           {role: 'system', content: SYSTEM + (where ? `\n\nEstá estudiando: ${where}` : '') + (context ? `\n\nCONTENIDO DEL TEMA:\n${context}` : '')},
           ...history,
           {role: 'user', content: question}
-        ]
-      })
-    });
-    const j = await r.json();
-    if(!r.ok) return res.status(502).json({error: (j.error && j.error.message) || 'Groq no respondió'});
-    res.status(200).json({answer: j.choices && j.choices[0] && j.choices[0].message.content || ''});
+        ];
+    const call = model => fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer ' + process.env.GROQ_API_KEY, 'Content-Type': 'application/json'},
+      body: JSON.stringify({model, temperature: 0.4, max_tokens: 900, messages})
+    }).then(async r => ({ok: r.ok, j: await r.json()}));
+    let out = await call(await pickModel());
+    // Si el modelo ya no existe, se busca otro y se reintenta una vez
+    if(!out.ok && /model|decommission|not exist|not found/i.test(JSON.stringify(out.j.error || ''))) out = await call(await pickModel(true));
+    if(!out.ok) return res.status(502).json({error: (out.j.error && out.j.error.message) || 'Groq no respondió'});
+    let answer = (out.j.choices && out.j.choices[0] && out.j.choices[0].message.content) || '';
+    answer = answer.replace(/<think>[\s\S]*?<\/think>/g, '').trim();   // algunos modelos «piensan en voz alta»
+    res.status(200).json({answer});
   }catch(e){
     console.error(e);
     res.status(500).json({error: 'Algo falló, prueba otra vez'});
