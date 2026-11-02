@@ -559,7 +559,7 @@ function runQuiz(s, cfg){
       time--; $('#qfill').style.width = (time/60*100) + '%'; $('#count').textContent = '⏱️ ' + time + ' s';
       if(time <= 0){ clearInterval(timer); timer = null; finish(); }
     }, 1000);
-    cleanup = () => { if(timer) clearInterval(timer); };
+    cleanup = () => { if(timer){ clearInterval(timer); timer = null; } };
   }
 
   function paintCombo(){
