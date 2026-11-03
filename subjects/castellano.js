@@ -53,48 +53,7 @@ registerSubject({
     ]
   },
   {
-    id:"texto", title:"El texto y la adecuación", icon:"📝",
-    body:`
-    <div class="card"><h3><span class="chip">1</span>¿Qué es un texto?</h3>
-      <p>Un conjunto de enunciados con <b>extensión variable</b> cuyo significado completo depende de la <b>intención</b> del emisor y de la <b>situación</b> en la que se encuentra.</p></div>
-    <div class="card"><h3><span class="chip">2</span>Extensión, intención y situación</h3>
-      <ul><li><b>Extensión variable</b>: un texto puede ser una interjección (<b>¡Oh!</b>), una frase sin verbo (<b>¡Qué lío!</b>), una oración (<b>Tengo sueño</b>) o un libro entero, como <b>El Quijote</b> de Miguel de Cervantes.</li>
-      <li><b>Intención</b>: el propósito con el que se dice algo: expresar un estado de ánimo, informar, dar órdenes, instruir, protestar, hacer reír…</li>
-      <li><b>Situación</b>: las circunstancias físicas, emocionales, laborales, sociales… que rodean al mensaje (el patio del colegio, un cine, la consulta del médico…). También se llama <b>contexto extralingüístico</b>.</li></ul></div>
-    <div class="card example"><h3><span class="chip">★</span>«¡Menudo banco!»</h3>
-      <p>Una corredora cansada ve un banco roto en el parque y dice «¡Menudo banco!». Es un texto completo porque tiene una <b>intención</b> clara (expresar su disgusto) y se entiende por la <b>situación</b>.</p>
-      <p>Por eso, <b>unas mismas palabras</b> pueden dar lugar a <b>varios textos diferentes</b>.</p></div>
-    <div class="card"><h3><span class="chip">3</span>¿Qué es un texto adecuado?</h3>
-      <p>Un texto es <b>adecuado</b> cuando su <b>contenido</b> y su <b>forma</b> se ajustan a la intención del emisor, a las características del receptor, a la situación y al canal.</p>
-      <p>La adecuación se nota sobre todo en el <b>léxico</b> (las palabras), que será más o menos culto.</p></div>
-    <div class="card"><h3><span class="chip">4</span>Los criterios de adecuación</h3>
-      <ul><li><b>Intención del emisor</b>: expresar sentimientos, dar órdenes, intentar convencer, informar, dar instrucciones, hacer reír…</li>
-      <li><b>Receptor</b>: experto o inexperto, conocido o desconocido, su edad, si está interesado o no…</li>
-      <li><b>Situación formal</b>: lengua culta y trato de respeto (<b>usted</b>). <b>Situación informal</b>: lengua coloquial y confianza (<b>tuteo</b>).</li>
-      <li><b>Canal oral</b>: improvisación y expresividad corporal. <b>Canal escrito</b>: exige <b>planificación</b> y <b>corrección</b>.</li>
-      <li>En la <b>mensajería instantánea</b> se escribe como se habla: lenguaje <b>informal y abreviado</b>.</li></ul></div>`,
-    quiz:[
-      {q:"¿Cuál de estos puede ser un texto completo?", opts:["Solo un libro entero","Solo un párrafo largo de varias líneas","Desde un «¡Oh!» hasta un libro","Solo una oración con verbo"], a:2, fb:"La extensión es variable: ¡Oh! también puede ser un texto."},
-      {q:"¿Qué es la intención de un texto?", opts:["El propósito con que se dice","El número de palabras","El papel o la pantalla donde se escribe","El idioma"], a:0, fb:"Informar, protestar, hacer reír…"},
-      {q:"¿Qué otro nombre recibe la situación?", opts:["Código lingüístico","Contexto extralingüístico","Canal auditivo","Mensaje escrito o mensaje oral"], a:1, fb:"Situación = contexto extralingüístico."},
-      {q:"En una situación formal se usa...", opts:["El tuteo y palabrotas","Emoticonos y muchas abreviaturas","Lenguaje abreviado","La lengua culta y el usted"], a:3, fb:"Lo formal pide lengua culta y trato de respeto."},
-      {q:"¿Dónde se nota sobre todo la adecuación?", opts:["En el léxico","En el tamaño de la letra","En la puntuación","En la longitud"], a:0, fb:"En las palabras que elegimos, más o menos cultas."},
-      {q:"¿Cómo es el lenguaje de la mensajería instantánea?", opts:["Muy culto y planificado","Informal y abreviado","Siempre con usted","Sin emociones de ningún tipo, como un informe"], a:1, fb:"Toma las características del canal oral."}
-    ],
-    hard:[
-      {q:"¿De qué dos cosas depende el significado completo de un texto?", ans:"De la intención del emisor y de la situación", ok:[["intencion"],["situacion","contexto"]]},
-      {q:"¿Qué ejemplo de libro entero pone el libro de texto?", ans:"El Quijote, de Miguel de Cervantes", ok:["quijote","cervantes"]},
-      {q:"¿Cuándo es adecuado un texto?", ans:"Cuando su contenido y su forma se ajustan a la intención, al receptor, a la situación y al canal", ok:["ajust","adapt"]},
-      {q:"¿Qué exige el canal escrito?", ans:"Planificación y corrección lingüística", ok:["planific","correc"]}
-    ],
-    games:[
-      {type:"classify", title:"¿Formal o informal?", bins:["🎩 Formal","😎 Informal"], items:[["Hablar con el director del instituto",0],["Una carta para pedir trabajo",0],["Presentar un libro",0],["Un aviso del Ayuntamiento",0],["Charlar con tus amigos",1],["Un WhatsApp a tu hermana",1],["Hablar con tu familia en casa",1],["Bromear en el patio",1]]},
-      {type:"tf", title:"Verdadero o falso", items:[["«¡Oh!» puede ser un texto",true],["Un texto siempre tiene que ser largo",false,"La extensión es variable"],["Unas mismas palabras pueden formar textos distintos",true],["En una situación formal se tutea",false,"Se usa usted"],["El canal escrito exige planificación",true],["La adecuación se refleja sobre todo en el léxico",true]]},
-      {type:"match", title:"Los criterios", pairs:[["Intención","Informar, convencer, hacer reír"],["Receptor","Experto o inexperto"],["Situación formal","Lengua culta y usted"],["Situación informal","Lengua coloquial y tuteo"],["Canal escrito","Planificación y corrección"]]}
-    ]
-  },
-  {
-    id:"signo", title:"El signo y los emoticonos", icon:"🚦",
+    id:"signo", title:"El signo", icon:"🚦",
     body:`
     <div class="card"><h3><span class="chip">1</span>¿Qué es un signo?</h3>
       <p>Un signo es cualquier <b>elemento físico</b> (sonoro, visual, olfativo, gustativo o táctil) que nos transmite <b>información</b>. Un corazón atravesado por una flecha significa amor.</p>
@@ -107,11 +66,7 @@ registerSubject({
       <ul><li><b>Señal</b>: transmite <b>órdenes</b>. Una señal de tráfico de dirección obligatoria, el silbato que termina un partido, la alarma de evacuación.</li>
       <li><b>Icono</b>: se <b>parece</b> a lo que representa (relación de <b>semejanza</b>). Una foto de Rosalía, el mapa de un país, el plano de una casa.</li>
       <li><b>Símbolo</b>: su relación con el significado es <b>arbitraria</b> (no hay razón que lo justifique). Los anillos olímpicos, la paloma de la paz, la bandera, el himno, la cruz roja.</li></ul>
-      <p>Todas las <b>palabras</b> son símbolos, excepto las <b>onomatopeyas</b> (tictac, zigzag, quiquiriquí).</p></div>
-    <div class="card"><h3><span class="chip">4</span>Los emoticonos</h3>
-      <p>Los emoticonos (o <b>pictogramas</b>) son signos visuales que se usan en Internet y en los móviles para expresar <b>emociones</b> de forma <b>directa y abreviada</b>.</p>
-      <p>Empezaron como secuencias de caracteres del <b>teclado</b>: :-) sonrisa, :-( triste, ;-) guiño, xD mucha risa, [] abrazo, :-* beso.</p>
-      <p>Se han popularizado gracias a las <b>redes sociales</b>. También sirven para designar <b>objetos y acciones</b>, y su dibujo puede cambiar en cada aplicación (WhatsApp, Line, Twitter…).</p></div>`,
+      <p>Todas las <b>palabras</b> son símbolos, excepto las <b>onomatopeyas</b> (tictac, zigzag, quiquiriquí).</p></div>`,
     quiz:[
       {q:"¿Cómo se llama la parte física del signo?", opts:["Significado","Significante","Símbolo","Código de la lengua"], a:1, fb:"Significante = parte física; significado = información."},
       {q:"La fiebre es un indicio de enfermedad. ¿Qué relación hay?", opts:["Causa-efecto","Semejanza","Arbitraria","Ninguna relación, es casualidad"], a:0, fb:"Los indicios son signos naturales de causa-efecto."},
@@ -119,18 +74,18 @@ registerSubject({
       {q:"La paloma de la paz es...", opts:["Un icono, porque es un dibujo","Un indicio natural","Una señal de tráfico","Un símbolo"], a:3, fb:"Su relación con la paz es arbitraria: símbolo."},
       {q:"¿Qué transmiten muchas señales?", opts:["Órdenes","Recuerdos","Olores","Nada"], a:0, fb:"Por ejemplo, la señal de dirección obligatoria."},
       {q:"¿Qué palabras NO son símbolos?", opts:["Los nombres propios","Las onomatopeyas","Los verbos","Las palabras largas de más de tres sílabas"], a:1, fb:"Tictac o quiquiriquí imitan el sonido real."},
-      {q:"¿Qué significa el emoticono ;-)?", opts:["Triste","Beso","Guiño","Abrazo"], a:2, fb:"El punto y coma hace de ojo guiñado."}
+      {q:"El dibujo de un corazón atravesado por una flecha significa...", opts:["Amor","Dolor de corazón","Peligro de muerte","Una dirección prohibida"], a:0, fb:"Es el ejemplo de signo que pone el libro."}
     ],
     hard:[
       {q:"¿Cómo se llama la información que aporta un signo?", ans:"Significado", ok:["significado"]},
       {q:"¿Qué tipo de signo es un trueno que indica tormenta?", ans:"Un indicio (signo natural)", ok:["indicio","natural"]},
       {q:"¿Qué tres tipos de signos artificiales hay?", ans:"Señal, icono y símbolo", ok:[["senal"],["icono"],["simbolo"]]},
-      {q:"¿Qué otro nombre reciben los emoticonos?", ans:"Pictogramas", ok:["pictograma"]}
+      {q:"¿Por qué todas las palabras son símbolos (menos las onomatopeyas)?", ans:"Porque su relación con el significado es arbitraria", ok:["arbitrari"]}
     ],
     games:[
       {type:"classify", title:"¿Qué tipo de signo es?", bins:["🍂 Indicio","⛔ Señal","🖼️ Icono","🕊️ Símbolo"], items:[["Hojas secas en el suelo",0],["Un trueno",0],["Una mancha de humedad",0],["Silbato final del partido",1],["Alarma de evacuar",1],["Dirección obligatoria",1],["Foto de una persona",2],["Mapa de un país",2],["Plano de una casa",2],["Anillos olímpicos",3],["Paloma de la paz",3],["Bandera de un país",3]]},
-      {type:"match", title:"Emoticonos", pairs:[[":-)","Sonrisa"],[":-(","Triste"],[";-)","Guiño"],["xD","Mucha risa"],["[ ]","Abrazo"],[":-*","Beso"]]},
-      {type:"tf", title:"Verdadero o falso", items:[["Un signo puede ser un olor",true],["Los indicios los crea el ser humano",false,"Son naturales"],["El icono se parece a lo que representa",true],["Las palabras son iconos",false,"Son símbolos"],["Los emoticonos expresan emociones de forma abreviada",true],["Un emoticono se ve igual en todas las aplicaciones",false,"Puede variar"]]}
+      {type:"match", title:"Tipos de signos", pairs:[["Indicio","Causa-efecto (natural)"],["Señal","Transmite órdenes"],["Icono","Relación de semejanza"],["Símbolo","Relación arbitraria"],["Significante","Parte física del signo"],["Significado","Información que aporta"]]},
+      {type:"tf", title:"Verdadero o falso", items:[["Un signo puede ser un olor",true],["Los indicios los crea el ser humano",false,"Son naturales"],["El icono se parece a lo que representa",true],["Las palabras son iconos",false,"Son símbolos"],["Las onomatopeyas imitan sonidos reales",true],["Los signos artificiales los crea el ser humano",true]]}
     ]
   },
   {
@@ -311,21 +266,13 @@ addQA("castellano", {
     ["¿Por qué en la conversación espontánea importan los gestos?", "Porque se improvisa y apoyan el mensaje", ["improvis","gest","no verbal","apoy"], "Tono, cejas o manos completan lo que decimos."],
     ["Unas nubes negras te avisan de que va a llover. ¿Es comunicación verbal?", "No", ["no"], "No usa palabras: es no verbal."]
   ],
-  texto: [
-    ["¿Por qué «¡Menudo banco!» es un texto completo?", "Tiene intención y situación", ["intencion","situacion"], "Se entiende por la intención y la situación."],
-    ["¿Puede una sola palabra ser un texto?", "Sí", ["si"], "La extensión es variable: ¡Oh! es un texto."],
-    ["Escribes al director del instituto. ¿Usted o tú?", "Usted", ["usted"], "Es una situación formal."],
-    ["¿Por qué en WhatsApp escribimos «q» y «xq»?", "Es lenguaje informal y abreviado", ["abrevi","informal","rapid"], "La mensajería instantánea imita lo oral."],
-    ["¿Qué cambia más al adecuar un texto?", "Las palabras (el léxico)", ["palabra","lexico","vocabulario"], "El léxico será más o menos culto."],
-    ["¿Por qué un texto escrito se piensa antes?", "Exige planificación", ["planific","correc"], "El canal escrito exige planificación y corrección."]
-  ],
   signo: [
     ["Ves humo a lo lejos y piensas que hay fuego. ¿Qué signo es el humo?", "Un indicio", ["indicio","natural"], "Causa-efecto: el fuego produce humo."],
     ["¿Por qué un mapa es un icono?", "Se parece a lo que representa", ["parec","semejanz"], "El icono tiene relación de semejanza."],
     ["¿Por qué la bandera es un símbolo?", "Su relación es arbitraria", ["arbitrari","convenc","acuerdo"], "No hay razón objetiva: lo acordamos."],
     ["¿Por qué «quiquiriquí» no es un símbolo?", "Imita el sonido real", ["imita","sonido","onomatopeya"], "Las onomatopeyas imitan lo que representan."],
     ["El silbato del árbitro al final del partido es...", "Una señal", ["senal"], "Transmite una orden: se acabó."],
-    ["¿Por qué usamos emoticonos al escribir?", "Para expresar emociones", ["emocion","sentimient"], "Expresan emociones de forma directa y abreviada."]
+    ["Una bandera te hace saber de qué país es un barco. ¿Qué es?", "Un símbolo", ["simbolo"], "Representa a un país de forma arbitraria."]
   ],
   lenguas: [
     ["¿El lenguaje y la lengua son lo mismo?", "No", ["no"], "El lenguaje es la capacidad; la lengua, un idioma concreto."],
@@ -364,7 +311,6 @@ addQA("castellano", {
 
 addFrases("castellano", {
   comunicacion: ["El emisor transmite un mensaje al receptor.", "El código es el conjunto de reglas y signos que comparten.", "La conversación planificada respeta el turno y tiene un plan previo."],
-  texto: ["Un texto tiene extensión variable.", "La situación también se llama contexto extralingüístico.", "Un texto es adecuado si se ajusta al emisor, al receptor, a la situación y al canal."],
   signo: ["Un signo tiene significante y significado.", "El indicio tiene una relación de causa y efecto.", "El símbolo tiene una relación arbitraria con su significado."],
   lenguas: ["El lenguaje es la capacidad de comunicarse mediante la palabra.", "España es un país plurilingüe.", "El vasco es la única lengua española que no viene del latín."],
   variedades: ["Los dialectos son las variedades geográficas de una lengua.", "Los niveles de uso son culto, medio y popular.", "El seseo es pronunciar la z como s."],
